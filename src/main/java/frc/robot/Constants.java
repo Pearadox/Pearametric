@@ -97,4 +97,7 @@ public final class Constants {
     public static final double AUTO_DRIVE_MAX_ACCELERATION = 3;
     public static final double AUTO_DRIVE_MAX_ANGULAR_ACCELERATION = Math.PI;
   }
+  public static final class IntakeConstants{
+    public static final int INTAKE_ROLLER_ID = 21; //chang it later
+  }
 }
