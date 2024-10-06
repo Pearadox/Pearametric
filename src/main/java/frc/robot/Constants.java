@@ -97,6 +97,27 @@ public final class Constants {
     public static final double AUTO_DRIVE_MAX_ACCELERATION = 3;
     public static final double AUTO_DRIVE_MAX_ANGULAR_ACCELERATION = Math.PI;
   }
+
+  public static final class ElevatorConstants {
+    public static final int ELEVATOR_MOTOR_ID = 41;
+
+    public static final double ELEVATOR_kP = 0.25; //TODO: elev PID Constants
+    public static final double ELEVATOR_kI = 0;
+    public static final double ELEVATOR_kD = 0;
+
+    public static final double ELEVATOR_kS = 0;
+    public static final double ELEVATOR_kG = 0;
+    public static final double ELEVATOR_kV = 0;
+    public static final double ELEVATOR_kA = 0;
+
+    public static final double LOW_HOOP_POS = 3; // TODO: find hoop pos
+    public static final double MID_HOOP_POS = 5;
+    public static final double HIGH_HOOP_POS = 7;
+    public static final double STOWED_POS = 1;
+  }
+
+  public class FuelShooterConstants {}
+
   public static final class IntakeConstants{
     public static final int INTAKE_ROLLER_ID = 21; //chang it later
   }
