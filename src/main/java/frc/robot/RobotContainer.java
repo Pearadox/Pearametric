@@ -29,6 +29,7 @@ public class RobotContainer {
   private final Drivetrain drivetrain = Drivetrain.getInstance();
 
   public static final XboxController driverController = new XboxController(0);
+  public static final XboxController operatorController = new XboxController(1);
   private final JoystickButton resetHeading_Start = new JoystickButton(driverController, XboxController.Button.kStart.value);
 
   private final SendableChooser<Command> autoChooser;
