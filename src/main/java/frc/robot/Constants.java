@@ -115,6 +115,10 @@ public final class Constants {
     public static final double HIGH_HOOP_POS = 7;
     public static final double STOWED_POS = 1;
   }
+  
+  public static final class IntakeConstants{
+    public static final int INTAKE_ROLLER_ID = 21; //chang it later
+  }
 
   public class FieldConstants {
     public static final double FIELD_LENGTH = Units.inchesToMeters(651.223);
@@ -135,5 +139,4 @@ public final class Constants {
           FIRST_RED_BASKETBALL_X - BASKETBALL_SEPARATION * i, FIELD_WIDTH / 2);
       }
     }
-  }
 }

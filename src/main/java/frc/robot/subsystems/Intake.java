@@ -4,14 +4,35 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.CANSparkLowLevel.MotorType;
+
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.drivers.PearadoxSparkMax;
+import frc.robot.Constants.IntakeConstants;
 
 public class Intake extends SubsystemBase {
+private static final Intake INTAKE = new Intake();
+private PearadoxSparkMax intakeRoller;
   /** Creates a new Intake. */
-  public Intake() {}
-
+  public static Intake getInstance() {
+    return INTAKE;
+  }
+  
+  public Intake () {
+    intakeRoller = new PearadoxSparkMax(IntakeConstants.INTAKE_ROLLER_ID, MotorType.kBrushless, IdleMode.kCoast, 80, false);
+  }
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+  }
+  public void IntakeIn(){
+    intakeRoller.set(0.5);
+  }
+  public void IntakeOut(){
+    intakeRoller.set(-0.5);
+  }
+  public void IntakeStop(){
+    intakeRoller.set(0);
   }
 }
