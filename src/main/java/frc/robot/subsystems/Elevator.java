@@ -5,19 +5,17 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
+
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.lib.drivers.PearadoxSparkMax;
+import frc.lib.drivers.PearadoxTalonFX;
+import frc.lib.util.SmarterDashboard;
 import frc.robot.Constants.ElevatorConstants;
 
 public class Elevator extends SubsystemBase {
-  private final PearadoxSparkMax elevMotor;
-  private final RelativeEncoder elevEncoder;
+  private final PearadoxTalonFX elevMotor;
   private final ProfiledPIDController elevPID;
   private final ElevatorFeedforward elevFeedForward;
 
@@ -35,10 +33,8 @@ public class Elevator extends SubsystemBase {
 
   /** Creates a new Elevator. */
   public Elevator() {
-    elevMotor = new PearadoxSparkMax(ElevatorConstants.ELEVATOR_MOTOR_ID,
-        MotorType.kBrushless, IdleMode.kBrake, 45, false);
-    elevEncoder = elevMotor.getEncoder();
-
+    elevMotor = new PearadoxTalonFX(ElevatorConstants.ELEVATOR_MOTOR_ID,
+        NeutralModeValue.Coast, 45, false);
     elevPID = new ProfiledPIDController(ElevatorConstants.ELEVATOR_kP,
         ElevatorConstants.ELEVATOR_kI, ElevatorConstants.ELEVATOR_kD,
         new TrapezoidProfile.Constraints(2.45, 2.45));
@@ -50,15 +46,15 @@ public class Elevator extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Elev Pos", elevEncoder.getPosition());
-    SmartDashboard.putNumber("Elev Current", elevMotor.getOutputCurrent());
-
+    SmarterDashboard.putNumber("Elev Pos", elevMotor.getPosition().getValueAsDouble(), "Elevator");
+    SmarterDashboard.putNumber("Elev Stator Current", elevMotor.getStatorCurrent().getValueAsDouble(), "Elevator");
+    SmarterDashboard.putNumber("Elev Supply Current", elevMotor.getSupplyCurrent().getValueAsDouble(), "Elevator");
   }
 
   public void reachGoal(double goal) {
     elevPID.setGoal(goal);
 
-    double pidOut = elevPID.calculate(elevEncoder.getPosition());
+    double pidOut = elevPID.calculate(elevMotor.getPosition().getValueAsDouble());
     double feedForwardOut = elevFeedForward.calculate(elevPID.getSetpoint().velocity);
     elevMotor.setVoltage(pidOut + feedForwardOut);
   }

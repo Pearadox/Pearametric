@@ -28,13 +28,13 @@ public class Elevate extends Command {
   public void execute() {
     elev.elevHold();
 
-    if (RobotContainer.driverController.getRawButton(XboxController.Button.kY.value)) {
+    if (RobotContainer.operatorController.getRawButton(XboxController.Button.kY.value)) {
       elev.setHighHoop();
-    } else if (RobotContainer.driverController.getRawButton(XboxController.Button.kX.value)) {
+    } else if (RobotContainer.operatorController.getRawButton(XboxController.Button.kX.value)) {
       elev.setMidHoop();
-    } else if (RobotContainer.driverController.getRawButton(XboxController.Button.kA.value)) {
+    } else if (RobotContainer.operatorController.getRawButton(XboxController.Button.kA.value)) {
       elev.setLowHoop();
-    } else if (RobotContainer.driverController.getRawButton(XboxController.Button.kB.value)) {
+    } else if (RobotContainer.operatorController.getRawButton(XboxController.Button.kB.value)) {
       elev.setStowed();
     }
   }
