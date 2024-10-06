@@ -117,4 +117,8 @@ public final class Constants {
   }
 
   public class FuelShooterConstants {}
+
+  public static final class IntakeConstants{
+    public static final int INTAKE_ROLLER_ID = 21; //chang it later
+  }
 }
