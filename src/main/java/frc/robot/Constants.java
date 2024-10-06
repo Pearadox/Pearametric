@@ -116,5 +116,24 @@ public final class Constants {
     public static final double STOWED_POS = 1;
   }
 
-  public class FuelShooterConstants {}
+  public class FieldConstants {
+    public static final double FIELD_LENGTH = Units.inchesToMeters(651.223);
+    public static final double FIELD_WIDTH = Units.inchesToMeters(323.277);
+    
+    public static final double FIRST_BLUE_BASKETBALL_X = 0.607;
+    public static final double FIRST_RED_BASKETBALL_X = 15.850;
+    public static final double BASKETBALL_SEPARATION = Units.inchesToMeters(30);
+    // game piece locations
+    public static final Translation2d[] BASKETBALLS = new Translation2d[20];
+    static {
+      for (int i = 0; i < BASKETBALLS.length / 2; i++) {
+        BASKETBALLS[i] = new Translation2d(
+          FIRST_BLUE_BASKETBALL_X + BASKETBALL_SEPARATION * i, FIELD_WIDTH / 2);
+      }
+      for (int i = BASKETBALLS.length / 2; i < BASKETBALLS.length; i++) {
+        BASKETBALLS[i] = new Translation2d(
+          FIRST_RED_BASKETBALL_X - BASKETBALL_SEPARATION * i, FIELD_WIDTH / 2);
+      }
+    }
+  }
 }

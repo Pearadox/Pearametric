@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 1.42,
-      "y": 5.55
+      "x": 2.06,
+      "y": 1.98
     },
-    "rotation": 0
+    "rotation": 60.0
   },
   "command": {
     "type": "sequential",
@@ -14,13 +14,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Two Meters"
+            "pathName": "H_B3"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Stop Modules"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "B3_H"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "H_AT"
           }
         }
       ]

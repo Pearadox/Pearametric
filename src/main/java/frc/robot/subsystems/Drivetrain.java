@@ -19,8 +19,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.lib.util.SmarterDashboard;
 import frc.robot.Constants.SwerveConstants;
 
 public class Drivetrain extends SubsystemBase {
@@ -115,8 +115,17 @@ public class Drivetrain extends SubsystemBase {
   public void periodic() {
     poseEstimator.update(getHeadingRotation2d(), getModulePositions());
 
-    SmartDashboard.putNumber("Robot Angle", getHeading());
-    SmartDashboard.putString("Angular Speed", new DecimalFormat("#.00").format((-gyro.getRate() / 180)) + "pi rad/s");
+    SmarterDashboard.putNumber("Robot Angle", getHeading(), "Drivetrain");
+    SmarterDashboard.putString("Angular Speed", 
+        new DecimalFormat("#.00").format((-gyro.getRate() / 180)) + "pi rad/s",
+        "Drivetrain");
+
+    SmarterDashboard.putData("Left Front Module State", leftFront.getState(), "Drivetrain");
+    SmarterDashboard.putData("Right Front Module State", rightFront.getState(), "Drivetrain");
+    SmarterDashboard.putData("Left Back Module State", leftBack.getState(), "Drivetrain");
+    SmarterDashboard.putData("Right Back Module State", rightBack.getState(), "Drivetrain");
+    SmarterDashboard.putData("Odometry", getPose(), "Drivetrain");
+    SmarterDashboard.putData("Module States", getModuleStates(), "Drivetrain");
   }
 
   public void swerveDrive(double frontSpeed, double sideSpeed, double turnSpeed, 
