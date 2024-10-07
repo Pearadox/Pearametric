@@ -8,7 +8,10 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 
@@ -115,24 +118,32 @@ public final class Constants {
     public static final double HIGH_HOOP_POS = 7;
     public static final double STOWED_POS = 1;
   }
+  
+  public static final class IntakeConstants{
+    public static final int INTAKE_ROLLER_ID = 21; //chang it later
+  }
 
   public class FieldConstants {
-    public static final double FIELD_LENGTH = Units.inchesToMeters(651.223);
-    public static final double FIELD_WIDTH = Units.inchesToMeters(323.277);
+    public static final double FIELD_LENGTH = Units.feetToMeters(54); // Units.inchesToMeters(651.223);
+    public static final double FIELD_WIDTH = Units.feetToMeters(27); // Units.inchesToMeters(323.277);
     
-    public static final double FIRST_BLUE_BASKETBALL_X = 0.607;
-    public static final double FIRST_RED_BASKETBALL_X = 15.850;
+    public static final double FIRST_BLUE_BASKETBALL_X = Units.inchesToMeters(24);
     public static final double BASKETBALL_SEPARATION = Units.inchesToMeters(30);
+    public static final double BASKETBALL_RADIUS = Units.inchesToMeters(5);
+    public static final double BASKETBALL_CAD_OFFSET = Units.inchesToMeters(1.7);
+
     // game piece locations
-    public static final Translation2d[] BASKETBALLS = new Translation2d[20];
+    public static final Pose3d[] BASKETBALLS = new Pose3d[20];
     static {
       for (int i = 0; i < BASKETBALLS.length / 2; i++) {
-        BASKETBALLS[i] = new Translation2d(
-          FIRST_BLUE_BASKETBALL_X + BASKETBALL_SEPARATION * i, FIELD_WIDTH / 2);
+        BASKETBALLS[i] = new Pose3d(new Translation3d(
+            FIRST_BLUE_BASKETBALL_X + BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
+            FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
       }
-      for (int i = BASKETBALLS.length / 2; i < BASKETBALLS.length; i++) {
-        BASKETBALLS[i] = new Translation2d(
-          FIRST_RED_BASKETBALL_X - BASKETBALL_SEPARATION * i, FIELD_WIDTH / 2);
+      for (int i = 0; i < BASKETBALLS.length / 2; i++) {
+        BASKETBALLS[i + BASKETBALLS.length / 2] = new Pose3d(new Translation3d(
+            FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
+            FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
       }
     }
   }
