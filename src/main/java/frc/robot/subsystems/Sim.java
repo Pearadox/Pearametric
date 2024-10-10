@@ -32,24 +32,24 @@ public class Sim extends SubsystemBase {
   public final Pose3d origin = new Pose3d(
     new Translation3d(0,0,0), new Rotation3d(0,0,0));
 
-  private static final double shooterZeroX = -0.238;
-  private static final double shooterZeroZ = 0.298;
+  private static final double shooterZeroX = -0.05;
+  private static final double shooterZeroZ = -0.06;
     
   private static ShuffleboardTab componentConfig = Shuffleboard.getTab("shooter");
     
-  private static GenericEntry shooterX = componentConfig.add("shooter x", shooterZeroX)
+  private static GenericEntry shooterX = componentConfig.add("shooter x", -shooterZeroX)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
       .withPosition(2, 0).getEntry();
   private static GenericEntry shooterY = componentConfig.add("shooter y", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
       .withPosition(2, 1).getEntry();
-  private static GenericEntry shooterZ = componentConfig.add("shooter z", shooterZeroZ)
+  private static GenericEntry shooterZ = componentConfig.add("shooter z", -shooterZeroZ)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
       .withPosition(2, 2).getEntry();
-  private static GenericEntry shooterPitch = componentConfig.add("shooter pitch", 0)
+  private static GenericEntry shooterRoll = componentConfig.add("shooter roll", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(2, 3).getEntry();
-  private static GenericEntry shooterRoll = componentConfig.add("shooter roll", 0)
+  private static GenericEntry shooterPitch = componentConfig.add("shooter pitch", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(2, 4).getEntry();
   private static GenericEntry shooterYaw = componentConfig.add("shooter yaw", 0)
@@ -64,9 +64,18 @@ public class Sim extends SubsystemBase {
   private static GenericEntry robotY = robotConfig.add("robot y", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
       .withPosition(6, 1).getEntry();
+  private static GenericEntry robotZ = robotConfig.add("robot z", 0)
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
+      .withPosition(6, 2).getEntry();
+  private static GenericEntry robotRoll = robotConfig.add("robot roll", 0)
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
+      .withPosition(6, 3).getEntry();
+  private static GenericEntry robotPitch = robotConfig.add("robot pitch", 0)
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
+      .withPosition(6, 4).getEntry();
   private static GenericEntry robotYaw = robotConfig.add("robot yaw", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
-      .withPosition(6, 2).getEntry();
+      .withPosition(6, 5).getEntry();
 
   private static Pose3d[] basketballs = Arrays.copyOf(FieldConstants.BASKETBALLS, FieldConstants.BASKETBALLS.length);
   private static boolean[] ballIsPresent = new boolean[FieldConstants.BASKETBALLS.length];
@@ -92,9 +101,14 @@ public class Sim extends SubsystemBase {
 
   public void visualizeRobot() {
     if (testing) {
-      robotPose = new Pose3d(new Pose2d(
-          robotX.getDouble(0), robotY.getDouble(0), 
-          new Rotation2d(Units.degreesToRadians(robotYaw.getDouble(0)))));
+      robotPose = new Pose3d(new Translation3d(
+          robotX.getDouble(0), 
+          robotY.getDouble(0), 
+          robotZ.getDouble(0)),
+          new Rotation3d(
+              Units.degreesToRadians(robotRoll.getDouble(0)),
+              Units.degreesToRadians(robotPitch.getDouble(0)),
+              Units.degreesToRadians(robotYaw.getDouble(0))));
     } else {
       robotPose = new Pose3d(drivetrain.getPose());
     }
@@ -103,24 +117,22 @@ public class Sim extends SubsystemBase {
   }
 
   public void visualizeComponents() {
-    // found that shooter should move 20cm +x and 10cm +z when roll is 45 to mimic a pivot point
-    // TODO: create more realistic pivot point
     Transform3d shooter = new Transform3d(
-        shooterX.getDouble(shooterZeroX) + (0.2 * shooterRoll.getDouble(0) / 45.0), 
+        shooterX.getDouble(-shooterZeroX),
         shooterY.getDouble(0), 
-        shooterZ.getDouble(shooterZeroZ) + (0.1 * shooterRoll.getDouble(0) / 45.0), 
+        shooterZ.getDouble(-shooterZeroZ),
         new Rotation3d(
-            Units.degreesToRadians(shooterPitch.getDouble(0)),
             Units.degreesToRadians(shooterRoll.getDouble(0)), 
+            Units.degreesToRadians(shooterPitch.getDouble(0)),
             Units.degreesToRadians(shooterYaw.getDouble(0))));
 
     // TODO: amp bar
-    Transform3d amp = new Transform3d(shooterZeroX, 0, shooterZeroZ, new Rotation3d());
-    
+    Transform3d amp = new Transform3d(0, 0, 0, new Rotation3d());
+            
     Logger.recordOutput("Sim/Robot Pose");
     Logger.recordOutput("Sim/Components Tranform3d[]", new Transform3d[] { shooter, amp });
-    // Logger.recordOutput("Sim/Components Pose3d[]", 
-    //     new Pose3d[] { robotPose.transformBy(shooter), robotPose.transformBy(amp) });
+    Logger.recordOutput("Sim/Components Pose3d[]", 
+        new Pose3d[] { robotPose.transformBy(shooter), robotPose.transformBy(amp) });
   }
 
   public void visualizeBasketballs() {
