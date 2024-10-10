@@ -9,9 +9,7 @@ import java.util.Map;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -32,40 +30,56 @@ public class Sim extends SubsystemBase {
   public final Pose3d origin = new Pose3d(
     new Translation3d(0,0,0), new Rotation3d(0,0,0));
 
-  private static final double shooterZeroX = -0.05;
-  private static final double shooterZeroZ = -0.06;
+  // private static final double compZeroX = 0.0;// for brownout shooter: -0.05;
+  // private static final double compZeroY = 0;
+  // private static final double compZeroZ = 0.0;// for brownout shooter: -0.06;
+
+  private static final int numComponents = 5;
+  private static final int X = 0, Y = 1, Z = 2;
+  private static double[][] compZeros = new double[3][numComponents];
+  static {
+    compZeros[X][0] = -0.35; // bball intake zeroX
+    compZeros[Z][0] = -0.2; // bball intake zeroZ
+    compZeros[X][4] = 0.34; // eintake intake zeroX
+    compZeros[Z][4] = -0.165; // eintake intake zeroZ
+  }
     
-  private static ShuffleboardTab componentConfig = Shuffleboard.getTab("shooter");
-    
-  private static GenericEntry shooterX = componentConfig.add("shooter x", -shooterZeroX)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
+  private static ShuffleboardTab componentConfig = Shuffleboard.getTab("component");
+  
+  private static GenericEntry componentNum = componentConfig.add("component num", 0)
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", 0, "max", numComponents - 1))
+      .withPosition(2, 6).getEntry();
+  private static int currNum = (int) (componentNum.getDouble(0) + 0.5);
+
+  private static GenericEntry compX = componentConfig.add("comp x", currNum)
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(2, 0).getEntry();
-  private static GenericEntry shooterY = componentConfig.add("shooter y", 0)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
+  private static GenericEntry compY = componentConfig.add("comp y", currNum)
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(2, 1).getEntry();
-  private static GenericEntry shooterZ = componentConfig.add("shooter z", -shooterZeroZ)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
+  private static GenericEntry compZ = componentConfig.add("comp z", currNum)
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(2, 2).getEntry();
-  private static GenericEntry shooterRoll = componentConfig.add("shooter roll", 0)
+  private static GenericEntry compRoll = componentConfig.add("comp roll", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(2, 3).getEntry();
-  private static GenericEntry shooterPitch = componentConfig.add("shooter pitch", 0)
+  private static GenericEntry compPitch = componentConfig.add("comp pitch", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(2, 4).getEntry();
-  private static GenericEntry shooterYaw = componentConfig.add("shooter yaw", 0)
+  private static GenericEntry compYaw = componentConfig.add("comp yaw", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(2, 5).getEntry();
 
   private static ShuffleboardTab robotConfig = Shuffleboard.getTab("robot");
 
   private static GenericEntry robotX = robotConfig.add("robot x", 0)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 4))
       .withPosition(6, 0).getEntry();
   private static GenericEntry robotY = robotConfig.add("robot y", 0)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 4))
       .withPosition(6, 1).getEntry();
   private static GenericEntry robotZ = robotConfig.add("robot z", 0)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 5))
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 4))
       .withPosition(6, 2).getEntry();
   private static GenericEntry robotRoll = robotConfig.add("robot roll", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
@@ -81,6 +95,17 @@ public class Sim extends SubsystemBase {
   private static boolean[] ballIsPresent = new boolean[FieldConstants.BASKETBALLS.length];
   static { Arrays.fill(ballIsPresent, true); }
 
+  private static Transform3d[] components = new Transform3d[5];
+  static { 
+    for (int i = 0; i < components.length; i++) { 
+      components[i] = new Transform3d(
+          -compZeros[X][i],
+          -compZeros[Y][i], 
+          -compZeros[Z][i],
+          new Rotation3d());
+    }
+  }
+
   private boolean testing = true;
   private Pose3d robotPose;
 
@@ -92,7 +117,7 @@ public class Sim extends SubsystemBase {
     visualizeOrigin();
     visualizeRobot();
     visualizeComponents();
-    visualizeBasketballs();
+    // visualizeBasketballs();
   }
 
   public void visualizeOrigin() {            
@@ -117,22 +142,22 @@ public class Sim extends SubsystemBase {
   }
 
   public void visualizeComponents() {
-    Transform3d shooter = new Transform3d(
-        shooterX.getDouble(-shooterZeroX),
-        shooterY.getDouble(0), 
-        shooterZ.getDouble(-shooterZeroZ),
+    int currNum = (int) (componentNum.getDouble(0) + 0.5);
+    Transform3d currComponent = new Transform3d(
+        compX.getDouble(0) - compZeros[X][currNum],
+        compY.getDouble(0) - compZeros[Y][currNum], 
+        compZ.getDouble(0) - compZeros[Z][currNum],
         new Rotation3d(
-            Units.degreesToRadians(shooterRoll.getDouble(0)), 
-            Units.degreesToRadians(shooterPitch.getDouble(0)),
-            Units.degreesToRadians(shooterYaw.getDouble(0))));
+            Units.degreesToRadians(compRoll.getDouble(0)), 
+            Units.degreesToRadians(compPitch.getDouble(0)),
+            Units.degreesToRadians(compYaw.getDouble(0))));
 
-    // TODO: amp bar
-    Transform3d amp = new Transform3d(0, 0, 0, new Rotation3d());
+    components[currNum] = currComponent;
             
     Logger.recordOutput("Sim/Robot Pose");
-    Logger.recordOutput("Sim/Components Tranform3d[]", new Transform3d[] { shooter, amp });
-    Logger.recordOutput("Sim/Components Pose3d[]", 
-        new Pose3d[] { robotPose.transformBy(shooter), robotPose.transformBy(amp) });
+    Logger.recordOutput("Sim/Components Tranform3d[]", components );
+    // Logger.recordOutput("Sim/Components Pose3d[]", 
+    //     new Pose3d[] { robotPose.transformBy(shooter), robotPose.transformBy(amp) });
   }
 
   public void visualizeBasketballs() {
