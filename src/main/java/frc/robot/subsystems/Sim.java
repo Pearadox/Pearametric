@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
 
 public class Sim extends SubsystemBase {  
@@ -27,8 +28,7 @@ public class Sim extends SubsystemBase {
 
   private Drivetrain drivetrain = Drivetrain.getInstance();
   
-  public final Pose3d origin = new Pose3d(
-    new Translation3d(0,0,0), new Rotation3d(0,0,0));
+  public final Pose3d origin = new Pose3d();
 
   // private static final double compZeroX = 0.0;// for brownout shooter: -0.05;
   // private static final double compZeroY = 0;
@@ -70,12 +70,16 @@ public class Sim extends SubsystemBase {
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(2, 5).getEntry();
 
+  private static GenericEntry manipZ = componentConfig.add("manip z", 0)
+      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", 0, "max", 3))
+      .withPosition(7, 1).getEntry();
+
   private static ShuffleboardTab robotConfig = Shuffleboard.getTab("robot");
 
-  private static GenericEntry robotX = robotConfig.add("robot x", 0)
+  private static GenericEntry robotX = robotConfig.add("robot x", 2.06)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 4))
       .withPosition(6, 0).getEntry();
-  private static GenericEntry robotY = robotConfig.add("robot y", 0)
+  private static GenericEntry robotY = robotConfig.add("robot y", 1.98)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", 4))
       .withPosition(6, 1).getEntry();
   private static GenericEntry robotZ = robotConfig.add("robot z", 0)
@@ -87,7 +91,7 @@ public class Sim extends SubsystemBase {
   private static GenericEntry robotPitch = robotConfig.add("robot pitch", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(6, 4).getEntry();
-  private static GenericEntry robotYaw = robotConfig.add("robot yaw", 0)
+  private static GenericEntry robotYaw = robotConfig.add("robot yaw", -120)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(6, 5).getEntry();
 
@@ -117,7 +121,7 @@ public class Sim extends SubsystemBase {
     visualizeOrigin();
     visualizeRobot();
     visualizeComponents();
-    // visualizeBasketballs();
+    visualizeBasketballs();
   }
 
   public void visualizeOrigin() {            
@@ -142,6 +146,25 @@ public class Sim extends SubsystemBase {
   }
 
   public void visualizeComponents() {
+    // piece connecting manipulator to elevator, rotationally static
+    double manipulatorHeight = manipZ.getDouble(0);
+
+    components[1] = new Transform3d(new Translation3d(
+        0, 
+        0, 
+        Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MANIPULATOR_MAX_EXTEND))), 
+        new Rotation3d());
+    components[2] = new Transform3d(new Translation3d(
+        0, 
+        0, 
+        Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.TOP_STAGE_MAX_EXTEND))), 
+        new Rotation3d());
+    components[3] = new Transform3d(new Translation3d(
+        0, 
+        0, 
+        Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MID_STAGE_MAX_EXTEND))), 
+        new Rotation3d());
+
     int currNum = (int) (componentNum.getDouble(0) + 0.5);
     Transform3d currComponent = new Transform3d(
         compX.getDouble(0) - compZeros[X][currNum],
@@ -153,6 +176,12 @@ public class Sim extends SubsystemBase {
             Units.degreesToRadians(compYaw.getDouble(0))));
 
     components[currNum] = currComponent;
+    components[0] = components[1].plus(components[0]);
+
+    if (components[0].getZ() > 0.2) {
+      basketballs[0] = robotPose.transformBy(
+          components[0].plus(new Transform3d(0.2, 0, 0, new Rotation3d())));
+    }
             
     Logger.recordOutput("Sim/Robot Pose");
     Logger.recordOutput("Sim/Components Tranform3d[]", components );

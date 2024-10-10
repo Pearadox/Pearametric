@@ -117,6 +117,11 @@ public final class Constants {
     public static final double MID_HOOP_POS = 5;
     public static final double HIGH_HOOP_POS = 7;
     public static final double STOWED_POS = 1;
+
+    // how far can each component of the elevator extend vertically
+    public static final double MANIPULATOR_MAX_EXTEND = Units.inchesToMeters(86);
+    public static final double TOP_STAGE_MAX_EXTEND = Units.inchesToMeters(58);
+    public static final double MID_STAGE_MAX_EXTEND = Units.inchesToMeters(30);
   }
   
   public static final class IntakeConstants{
