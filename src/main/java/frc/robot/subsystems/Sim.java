@@ -10,8 +10,11 @@ import java.util.Map;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
@@ -111,8 +114,8 @@ public class Sim extends SubsystemBase {
     }
   }
 
-  private boolean testing = true;
   private Pose3d robotPose;
+  private double yaw = 0;
 
   public Sim() {}
   
@@ -130,7 +133,12 @@ public class Sim extends SubsystemBase {
   }
 
   public void visualizeRobot() {
-    if (testing) {
+    yaw += Math.abs(RobotContainer.driverController.getRightX()) > 0.1 ? -RobotContainer.driverController.getRightX() * 0.1 : 0;
+    try {
+      robotPose = new Pose3d(drivetrain.getPose().plus(new Transform2d(new Translation2d(),
+        new Rotation2d(yaw))));
+    }
+    catch (Exception e) {
       robotPose = new Pose3d(new Translation3d(
           robotX.getDouble(0), 
           robotY.getDouble(0), 
@@ -139,10 +147,7 @@ public class Sim extends SubsystemBase {
               Units.degreesToRadians(robotRoll.getDouble(0)),
               Units.degreesToRadians(robotPitch.getDouble(0)),
               Units.degreesToRadians(robotYaw.getDouble(0))));
-    } else {
-      robotPose = new Pose3d(drivetrain.getPose());
     }
-
     Logger.recordOutput("Sim/Robot Pose", robotPose);
   }
 

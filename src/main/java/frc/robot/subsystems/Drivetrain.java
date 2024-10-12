@@ -53,7 +53,7 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
   //     getModulePositions(),
   //     new Pose2d());
 
-  private static final double kSimLoopPeriod = 0.02;
+  private static final double kSimLoopPeriod = 0.005;
   private Notifier m_simNotifier = null;
   private double m_lastSimTime;
 

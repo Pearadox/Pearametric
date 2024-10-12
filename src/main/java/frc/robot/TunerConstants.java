@@ -65,7 +65,7 @@ public class TunerConstants {
                   .withStatorCurrentLimit(60)
                   .withStatorCurrentLimitEnable(true));
   private static final CANcoderConfiguration cancoderInitialConfigs = new CANcoderConfiguration();
-  private static final Pigeon2Configuration pigeonConfigs = null;
+  private static final Pigeon2Configuration pigeonConfigs = new Pigeon2Configuration();
 
   // Speed and kinematics constants
   private static final double kMaxSpeedMps = 4.0;
