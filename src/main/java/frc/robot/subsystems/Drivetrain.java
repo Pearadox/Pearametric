@@ -307,6 +307,6 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
               /* use the measured time delta, get battery voltage from WPILib */
               updateSimState(deltaTime, RobotController.getBatteryVoltage());
             });
-    m_simNotifier.startPeriodic(kSimLoopPeriod);
+    m_simNotifier.startPeriodic(kSimLoopPeriod); 
   }
 }
