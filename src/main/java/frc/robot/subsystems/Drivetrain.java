@@ -185,9 +185,9 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
 
     SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds, centerOfRotation);
     
+    this.setControl(AutoRequest.withSpeeds(chassisSpeeds));
     setModuleStates(moduleStates);
     
-    this.setControl(AutoRequest.withSpeeds(chassisSpeeds));
   }
 
   public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
