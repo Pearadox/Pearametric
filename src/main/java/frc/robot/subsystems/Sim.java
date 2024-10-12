@@ -10,8 +10,11 @@ import java.util.Map;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
@@ -21,6 +24,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.RobotContainer;
 
 public class Sim extends SubsystemBase {  
   private static final Sim sim = new Sim();
@@ -93,9 +97,6 @@ public class Sim extends SubsystemBase {
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(3, 5).getEntry();
 
-
-
-
   private static ShuffleboardTab robotConfig = Shuffleboard.getTab("robot");
 
   private static GenericEntry robotX = robotConfig.add("robot x", 2.06)
@@ -113,13 +114,14 @@ public class Sim extends SubsystemBase {
   private static GenericEntry robotPitch = robotConfig.add("robot pitch", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(6, 4).getEntry();
-  private static GenericEntry robotYaw = robotConfig.add("robot yaw", -120)
+  private static GenericEntry robotYaw = robotConfig.add("robot yaw", 0)
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
       .withPosition(6, 5).getEntry();
 
-  private static Pose3d[] basketballs = Arrays.copyOf(FieldConstants.BASKETBALLS, FieldConstants.BASKETBALLS.length);
+  private static Pose3d[] stagedBasketballs = Arrays.copyOf(FieldConstants.BASKETBALLS, FieldConstants.BASKETBALLS.length);
   private static boolean[] ballIsPresent = new boolean[FieldConstants.BASKETBALLS.length];
   static { Arrays.fill(ballIsPresent, true); }
+  private static Pose3d[] scoredBasketballs = new Pose3d[1];
 
   private static Transform3d[] components = new Transform3d[6]; //5
   static { 
@@ -134,15 +136,17 @@ public class Sim extends SubsystemBase {
 
   private boolean testing = true;
   private Pose3d robotPose;
+  private double x = 0, y = 0, yaw = 0;
+  private boolean hasBasketball = false;
 
   public Sim() {}
   
   @Override
   public void periodic() {
     // testing with brownout in advantagescope, shooter = model_0, amp = model_1
-    visualizeComponents();
     visualizeOrigin();
     visualizeRobot();
+    visualizeComponents();
     visualizeBasketballs();
   }
 
@@ -150,7 +154,7 @@ public class Sim extends SubsystemBase {
     Logger.recordOutput("Sim/Zeroed Pose3d", origin);
   }
 
-  public void visualizeRobot() {
+  public void visualizeRobot() {    
     if (testing) {
       robotPose = new Pose3d(new Translation3d(
           robotX.getDouble(0), 
@@ -160,6 +164,12 @@ public class Sim extends SubsystemBase {
               Units.degreesToRadians(robotRoll.getDouble(0)),
               Units.degreesToRadians(robotPitch.getDouble(0)),
               Units.degreesToRadians(robotYaw.getDouble(0))));
+
+      x += Math.abs(RobotContainer.driverController.getLeftY()) > 0.1 ? -RobotContainer.driverController.getLeftY() * 0.1 : 0;
+      y += Math.abs(RobotContainer.driverController.getLeftX()) > 0.1 ? -RobotContainer.driverController.getLeftX() * 0.1 : 0;
+      yaw += Math.abs(RobotContainer.driverController.getRightX()) > 0.1 ? -RobotContainer.driverController.getRightX() * 0.1 : 0;
+  
+      robotPose = new Pose3d(robotPose.toPose2d().plus(new Transform2d(new Translation2d(x, y), new Rotation2d(yaw))));
     } else {
       robotPose = new Pose3d(drivetrain.getPose());
     }
@@ -168,8 +178,11 @@ public class Sim extends SubsystemBase {
   }
 
   public void visualizeComponents() {
-    // piece connecting manipulator to elevator, rotationally static
-    double manipulatorHeight = manipZ.getDouble(0);
+    double manipulatorHeight = RobotContainer.driverController.getRightTriggerAxis()
+        * ElevatorConstants.MANIPULATOR_MAX_EXTEND 
+        + manipZ.getDouble(0);
+    double manipPitch = -Math.PI / 2.0 + 
+        (RobotContainer.driverController.getLeftTriggerAxis() * Math.PI * 2.0 / 3.0);
 
     components[1] = new Transform3d(new Translation3d(
         0, 
@@ -216,41 +229,60 @@ public class Sim extends SubsystemBase {
             Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
 
     components[currNum] = currComponent;
-    components[0] = components[1].plus(components[0]);
+    components[0] = components[1].plus(components[0]).plus(new Transform3d(
+        new Translation3d(), 
+        new Rotation3d(0, manipPitch, 0)));
 
-    if (components[0].getZ() > 0.2) {
-      basketballs[0] = robotPose.transformBy(
-          components[0].plus(new Transform3d(0.2, 0, 0, new Rotation3d())));
-    }
     Logger.recordOutput("Sim/Components Tranform3d[]", components );
     Logger.recordOutput("Sim/Robot Pose");
     // Logger.recordOutput("Sim/Components Pose3d[]", 
     //     new Pose3d[] { robotPose.transformBy(shooter), robotPose.transformBy(amp) });
   }
 
-
-
   public void visualizeBasketballs() {
-    for (int i = 0; i < basketballs.length; i++) {
-      if (!ballIsPresent[i]) {
-        basketballs[i] = null;
-      } else if (ballIsPresent[i] && basketballs[i] == null) {
-        basketballs[i] = FieldConstants.BASKETBALLS[i];
+    Pose3d intake = robotPose.transformBy(components[0].plus(
+            new Transform3d(0.25, 0, 0.05, new Rotation3d())));
+
+    for (int i = 0; i < stagedBasketballs.length; i++) {
+      if (RobotContainer.driverController.getLeftTriggerAxis() > 0.5 && 
+          get3dDistance(stagedBasketballs[i], intake) < 
+              FieldConstants.BASKETBALL_RADIUS) {
+        ballIsPresent[i] = false;
+        hasBasketball = true;
       }
 
-      // used this to find FieldConstants.BASKETBALL_CAD_OFFSET
-      // basketballs[i] = FieldConstants.BASKETBALLS[i].transformBy(
-      //     new Transform3d(new Translation3d(
-      //         ballOffset.getDouble(0), 0, 0), 
-      //     new Rotation3d(0, 0, 0)));
-
-      // makes basketball spin lol
-      // basketballs[i] = basketballs[i].transformBy(
-      //     new Transform3d(new Translation3d(0, 0, 0), 
-      //     new Rotation3d(0, 0.01, 0))); 
+      if (!ballIsPresent[i]) {
+        stagedBasketballs[i] = origin;
+      } else if (ballIsPresent[i] && stagedBasketballs[i].equals(origin)) {
+        stagedBasketballs[i] = FieldConstants.BASKETBALLS[i];
+      }      
     }
 
-    Logger.recordOutput("Sim/Basketballs", basketballs);
+    if (hasBasketball) {
+      Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { intake });
+    } else {
+      Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { } );
+    }
+
+    if (RobotContainer.driverController.getAButtonPressed()) {
+      hasBasketball = false;
+    }
+
+    Logger.recordOutput("Sim/Staged Basketballs", stagedBasketballs);
+    // Logger.recordOutput("Sim/Scored Basketballs", scoredBasketballs);
+  }
+
+  public double get2dDistance(Pose3d a, Pose3d b) {
+    return Math.sqrt(
+      Math.pow(b.getX() - a.getX(), 2) + 
+      Math.pow(b.getY() - a.getY(), 2));
+  }
+
+  public double get3dDistance(Pose3d a, Pose3d b) {
+    return Math.sqrt(
+      Math.pow(b.getX() - a.getX(), 2) + 
+      Math.pow(b.getY() - a.getY(), 2) + 
+      Math.pow(b.getZ() - a.getZ(), 2));
   }
 }
 
