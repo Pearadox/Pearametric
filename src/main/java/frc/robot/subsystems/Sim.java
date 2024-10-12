@@ -34,7 +34,7 @@ public class Sim extends SubsystemBase {
   // private static final double compZeroY = 0;
   // private static final double compZeroZ = 0.0;// for brownout shooter: -0.06;
 
-  private static final int numComponents = 5;
+  private static final int numComponents = 6; //5
   private static final int X = 0, Y = 1, Z = 2;
   private static double[][] compZeros = new double[3][numComponents];
   static {
@@ -121,7 +121,7 @@ public class Sim extends SubsystemBase {
   private static boolean[] ballIsPresent = new boolean[FieldConstants.BASKETBALLS.length];
   static { Arrays.fill(ballIsPresent, true); }
 
-  private static Transform3d[] components = new Transform3d[5];
+  private static Transform3d[] components = new Transform3d[6]; //5
   static { 
     for (int i = 0; i < components.length; i++) { 
       components[i] = new Transform3d(
@@ -140,9 +140,9 @@ public class Sim extends SubsystemBase {
   @Override
   public void periodic() {
     // testing with brownout in advantagescope, shooter = model_0, amp = model_1
+    visualizeComponents();
     visualizeOrigin();
     visualizeRobot();
-    visualizeComponents();
     visualizeBasketballs();
   }
 
@@ -187,12 +187,6 @@ public class Sim extends SubsystemBase {
         Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MID_STAGE_MAX_EXTEND))), 
         new Rotation3d());
 
-    components[4] = new Transform3d(new Translation3d(
-      0, //change
-      0, //change
-      0),
-      new Rotation3d());
-
     int currNum = (int) (componentNum.getDouble(0) + 0.5);
     Transform3d currComponent = new Transform3d(
         compX.getDouble(0) - compZeros[X][currNum],
@@ -203,14 +197,23 @@ public class Sim extends SubsystemBase {
             Units.degreesToRadians(compPitch.getDouble(0)),
             Units.degreesToRadians(compYaw.getDouble(0))));
 
-    Transform3d elecIntake = new Transform3d(
+    components[4] = new Transform3d(
+        elecIntakeX.getDouble(-0.34),
+        elecIntakeY.getDouble(0),
+        elecIntakeZ.getDouble(0.165),
+        new Rotation3d(
+            Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
+            Units.degreesToRadians(elecIntakePitch.getDouble(0)),
+            Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
+            
+    components[5] = new Transform3d(
         elecIntakeX.getDouble(0),
         elecIntakeY.getDouble(0),
         elecIntakeZ.getDouble(0),
         new Rotation3d(
             Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
             Units.degreesToRadians(elecIntakePitch.getDouble(0)),
-            Units.degreesToRadians(elecIntakeYaw.getDouble(0))));    
+            Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
 
     components[currNum] = currComponent;
     components[0] = components[1].plus(components[0]);
@@ -219,9 +222,8 @@ public class Sim extends SubsystemBase {
       basketballs[0] = robotPose.transformBy(
           components[0].plus(new Transform3d(0.2, 0, 0, new Rotation3d())));
     }
-
-    Logger.recordOutput("Sim/Robot Pose");
     Logger.recordOutput("Sim/Components Tranform3d[]", components );
+    Logger.recordOutput("Sim/Robot Pose");
     // Logger.recordOutput("Sim/Components Pose3d[]", 
     //     new Pose3d[] { robotPose.transformBy(shooter), robotPose.transformBy(amp) });
   }
@@ -251,3 +253,10 @@ public class Sim extends SubsystemBase {
     Logger.recordOutput("Sim/Basketballs", basketballs);
   }
 }
+
+
+//5 values — [(X: 0.35m, Y: 0.00m, Z: 2.38m, Roll: 0.00°, Pitch: 0.00°, Yaw: 0.00°),
+//(X: 0.00m, Y: 0.00m, Z: 2.18m, Roll: 0.00°, Pitch: 0.00°, Yaw: 0.00°), 
+//(X: 0.00m, Y: 0.00m, Z: 1.47m, Roll: 0.00°, Pitch: 0.00°, Yaw: 0.00°), 
+//(X: 0.00m, Y: 0.00m, Z: 0.76m, Roll: 0.00°, Pitch: 0.00°, Yaw: 0.00°),
+//(X: 0.35m, Y: 0.00m, Z: 0.00m, Roll: -2.25°, Pitch: 0.00°, Yaw: 0.00°)]

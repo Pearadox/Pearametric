@@ -26,6 +26,7 @@ public class Dump extends Command {
   public void execute() {
     if (RobotContainer.driverController.getRawButton(XboxController.Button.kY.value)) {
       hop.dump();
+
     }
   }
 
