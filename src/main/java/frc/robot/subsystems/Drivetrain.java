@@ -7,6 +7,12 @@ package frc.robot.subsystems;
 import java.text.DecimalFormat;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrain;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModuleConstants;
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -19,11 +25,15 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.util.SmarterDashboard;
+import frc.robot.TunerConstants;
 import frc.robot.Constants.SwerveConstants;
 
-public class Drivetrain extends SubsystemBase {
+public class Drivetrain extends SwerveDrivetrain implements Subsystem {
   private SwerveModule leftFront;
   private SwerveModule rightFront;
   private SwerveModule leftBack;
@@ -37,14 +47,27 @@ public class Drivetrain extends SubsystemBase {
 
   private SwerveDrivePoseEstimator poseEstimator;
 
-  private static final Drivetrain drivetrain = new Drivetrain();
+  private static final double kSimLoopPeriod = 0.005; // 5 ms
+  private Notifier m_simNotifier = null;
+  private double m_lastSimTime;
+
+  /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
+  private final Rotation2d BlueAlliancePerspectiveRotation = Rotation2d.fromDegrees(0);
+  /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
+  private final Rotation2d RedAlliancePerspectiveRotation = Rotation2d.fromDegrees(180);
+  /* Keep track if we've ever applied the operator perspective before or not */
+  private boolean hasAppliedOperatorPerspective = false;
+
+  private final SwerveRequest.ApplyChassisSpeeds AutoRequest =
+      new SwerveRequest.ApplyChassisSpeeds();
 
   public static Drivetrain getInstance(){
-    return drivetrain;
+    return TunerConstants.DriveTrain;
   }
 
   /** Creates a new SwerveDrivetrain. */
-  public Drivetrain() {
+  public Drivetrain(SwerveDrivetrainConstants driveConstants, SwerveModuleConstants... modules) {
+    super(driveConstants, 0.005, modules);
     new Thread(() -> {
       try{
         Thread.sleep(1000);
@@ -109,6 +132,8 @@ public class Drivetrain extends SubsystemBase {
       SwerveConstants.AUTO_CONFIG,
       () -> isRedAlliance(),
       this);
+
+      if (Utils.isSimulation()) { startSimThread(); }
   }
 
   @Override
@@ -150,6 +175,8 @@ public class Drivetrain extends SubsystemBase {
 
     SwerveModuleState[] moduleStates = SwerveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(chassisSpeeds, centerOfRotation);
 
+    this.setControl(AutoRequest.withSpeeds(chassisSpeeds));
+
     setModuleStates(moduleStates);
   }
 
@@ -176,7 +203,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public Pose2d getPose(){
-    return poseEstimator.getEstimatedPosition();
+    return (this.getState().Pose != null) ? this.getState().Pose : poseEstimator.getEstimatedPosition();
   }
 
   public void resetPose(Pose2d pose) {
@@ -247,5 +274,22 @@ public class Drivetrain extends SubsystemBase {
         return alliance.get() == DriverStation.Alliance.Red;
     }
     return false;
+  }
+
+  private void startSimThread() {
+    m_lastSimTime = Utils.getCurrentTimeSeconds();
+
+    /* Run simulation at a faster rate so PID gains behave more reasonably */
+    m_simNotifier =
+        new Notifier(
+            () -> {
+              final double currentTime = Utils.getCurrentTimeSeconds();
+              double deltaTime = currentTime - m_lastSimTime;
+              m_lastSimTime = currentTime;
+
+              /* use the measured time delta, get battery voltage from WPILib */
+              updateSimState(deltaTime, RobotController.getBatteryVoltage());
+            });
+    m_simNotifier.startPeriodic(kSimLoopPeriod);
   }
 }

@@ -43,7 +43,7 @@ public class RobotContainer {
 
     drivetrain.setDefaultCommand(new SwerveDrive());
 
-    autoChooser = AutoBuilder.buildAutoChooser("Two Meters");
+    autoChooser = AutoBuilder.buildAutoChooser("B3_AT");
     SmartDashboard.putData("Auto Chooser", autoChooser);
   }
 

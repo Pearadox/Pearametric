@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
 
@@ -147,7 +148,9 @@ public class Sim extends SubsystemBase {
 
   public void visualizeComponents() {
     // piece connecting manipulator to elevator, rotationally static
-    double manipulatorHeight = manipZ.getDouble(0);
+    double manipulatorHeight = RobotContainer.driverController.getRightTriggerAxis()
+        * ElevatorConstants.MANIPULATOR_MAX_EXTEND 
+        + manipZ.getDouble(0);
 
     components[1] = new Transform3d(new Translation3d(
         0, 
