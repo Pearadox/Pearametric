@@ -175,7 +175,7 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
     sideSpeed = sideLimiter.calculate(sideSpeed) * SwerveConstants.TELE_DRIVE_MAX_SPEED;
     turnSpeed = turnLimiter.calculate(turnSpeed) * SwerveConstants.TELE_DRIVE_MAX_ANGULAR_SPEED;
 
-    ChassisSpeeds chassisSpeeds;
+    ChassisSpeeds chassisSpeeds; 
     if(fieldOriented){
       chassisSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(frontSpeed, sideSpeed, turnSpeed, getHeadingRotation2d());
     }
