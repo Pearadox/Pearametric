@@ -4,12 +4,17 @@
 
 package frc.robot;
 
+import java.util.Observable;
+
+import javax.swing.text.Highlighter.HighlightPainter;
+
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -122,6 +127,8 @@ public final class Constants {
     public static final double MANIPULATOR_MAX_EXTEND = Units.inchesToMeters(86);
     public static final double TOP_STAGE_MAX_EXTEND = Units.inchesToMeters(58);
     public static final double MID_STAGE_MAX_EXTEND = Units.inchesToMeters(30);
+
+    public static final Transform3d HELD_BASKETBALL_POS = new Transform3d(0.25, 0, 0.05, new Rotation3d());
   }
   
   public static final class IntakeConstants{
@@ -156,5 +163,16 @@ public final class Constants {
             FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
       }
     }
+
+    public static final double HOOP_RADIUS = Units.inchesToMeters(12);
+
+    public static final Pose3d HIGH_HOOP = new Pose3d(
+        new Translation3d(1.688, FIELD_WIDTH - 6.991, Units.inchesToMeters(90)), new Rotation3d());
+    public static final Pose3d MID_HOOP = new Pose3d(
+        new Translation3d(2.493, FIELD_WIDTH - 7.452, Units.inchesToMeters(54)), new Rotation3d());
+    public static final Pose3d LOW_HOOP = new Pose3d(
+        new Translation3d(0.883, FIELD_WIDTH - 6.531, Units.inchesToMeters(36)), new Rotation3d());
+
+    public static final Pose3d[] HOOPS = { HIGH_HOOP, MID_HOOP, LOW_HOOP };
   }
 }

@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -18,9 +19,13 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
@@ -135,9 +140,12 @@ public class Sim extends SubsystemBase {
   }
 
   private boolean testing = true;
-  private Pose3d robotPose;
+  private static Pose3d robotPose, intake;
   private double x = 0, y = 0, yaw = 0;
-  private boolean hasBasketball = false;
+
+  private static boolean hasBasketball = false, scoringBasketball = false;
+
+  private static double dunkSpeed = 2.0;
 
   public Sim() {}
   
@@ -240,8 +248,7 @@ public class Sim extends SubsystemBase {
   }
 
   public void visualizeBasketballs() {
-    Pose3d intake = robotPose.transformBy(components[0].plus(
-            new Transform3d(0.25, 0, 0.05, new Rotation3d())));
+    intake = robotPose.transformBy(components[0].plus(ElevatorConstants.HELD_BASKETBALL_POS));
 
     for (int i = 0; i < stagedBasketballs.length; i++) {
       if (RobotContainer.driverController.getLeftTriggerAxis() > 0.5 && 
@@ -259,17 +266,32 @@ public class Sim extends SubsystemBase {
     }
 
     if (hasBasketball) {
+      // for (Pose3d hoop : FieldConstants.HOOPS) {
+        // if (intake.getZ() > hoop.getZ() 
+        //     && get2dDistance(intake, hoop) < FieldConstants.HOOP_RADIUS * 5
+        //     && RobotContainer.driverController.getBButtonPressed()) {
+        //   scoringBasketball = true;
+        //   break;
+        // }
+      // }
+      if (RobotContainer.driverController.getBButtonPressed()) {
+        scoringBasketball = true;
+      }
       Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { intake });
     } else {
       Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { } );
+    }
+
+    if (scoringBasketball) {      
+      score();
     }
 
     if (RobotContainer.driverController.getAButtonPressed()) {
       hasBasketball = false;
     }
 
+    Logger.recordOutput("Sim/dist", get2dDistance(intake, FieldConstants.HIGH_HOOP));
     Logger.recordOutput("Sim/Staged Basketballs", stagedBasketballs);
-    // Logger.recordOutput("Sim/Scored Basketballs", scoredBasketballs);
   }
 
   public double get2dDistance(Pose3d a, Pose3d b) {
@@ -283,6 +305,34 @@ public class Sim extends SubsystemBase {
       Math.pow(b.getX() - a.getX(), 2) + 
       Math.pow(b.getY() - a.getY(), 2) + 
       Math.pow(b.getZ() - a.getZ(), 2));
+  }
+
+  public static Command score() {
+    return new ScheduleCommand( // Branch off and exit immediately
+        Commands.defer(
+                () -> {
+                  hasBasketball = false;
+                  scoringBasketball = false;
+                  final Pose3d startPose = intake;
+                  final Pose3d endPose = FieldConstants.LOW_HOOP;
+
+                  final double duration =
+                      startPose.getTranslation().getDistance(endPose.getTranslation()) / dunkSpeed;
+                  final Timer timer = new Timer();
+                  timer.start();
+                  return Commands.run(
+                          () ->
+                              Logger.recordOutput(
+                                  "Sim/Scored Basketballs",
+                                  new Pose3d[] {
+                                    startPose.interpolate(endPose, timer.get() / duration)
+                                  }))
+                      .until(() -> timer.hasElapsed(duration))
+                      .finallyDo(
+                          () -> Logger.recordOutput("NoteVisualizer/Scored Basketballs", new Pose3d[] {}));
+                },
+                Set.of())
+            .ignoringDisable(true));
   }
 }
 
