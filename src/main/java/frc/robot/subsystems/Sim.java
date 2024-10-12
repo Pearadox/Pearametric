@@ -130,6 +130,7 @@ public class Sim extends SubsystemBase {
   }
 
   public void visualizeRobot() {
+    testing = false;
     if (testing) {
       robotPose = new Pose3d(new Translation3d(
           robotX.getDouble(0), 
@@ -140,7 +141,12 @@ public class Sim extends SubsystemBase {
               Units.degreesToRadians(robotPitch.getDouble(0)),
               Units.degreesToRadians(robotYaw.getDouble(0))));
     } else {
-      robotPose = new Pose3d(drivetrain.getPose());
+      try {
+        robotPose = new Pose3d(drivetrain.getState().Pose);
+      } catch (Exception e) {
+        robotPose = origin;
+        // testing = true;
+      }
     }
 
     Logger.recordOutput("Sim/Robot Pose", robotPose);

@@ -57,7 +57,7 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    resetHeading_Start.onTrue(new InstantCommand(drivetrain::zeroHeading, drivetrain));
+    // resetHeading_Start.onTrue(new InstantCommand(drivetrain::zeroHeading, drivetrain));
   }
 
   /**
@@ -66,12 +66,12 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    drivetrain.resetAllEncoders();
-    drivetrain.setHeading(0);
+    // drivetrain.resetAllEncoders();
+    // drivetrain.setHeading(0);
     return autoChooser.getSelected();
   }
 
   public void registerNamedCommands(){
-    NamedCommands.registerCommand("Stop Modules", new InstantCommand(() -> drivetrain.stopModules()));
+    NamedCommands.registerCommand("Stop Modules", new InstantCommand());
   }
 }

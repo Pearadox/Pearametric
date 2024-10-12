@@ -76,7 +76,7 @@ public class Robot extends LoggedRobot {
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
-    drivetrain.setAllIdleMode(true);
+    // drivetrain.setAllIdleMode(true);
   }
 
   @Override
@@ -107,8 +107,8 @@ public class Robot extends LoggedRobot {
       m_autonomousCommand.cancel();
     }
 
-    drivetrain.resetAllEncoders();
-    drivetrain.setAllIdleMode(true);
+    // drivetrain.resetAllEncoders();
+    // drivetrain.setAllIdleMode(true);
   }
 
   /** This function is called periodically during operator control. */
