@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import java.text.DecimalFormat;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
@@ -27,6 +28,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.util.SmarterDashboard;
@@ -34,20 +36,24 @@ import frc.robot.TunerConstants;
 import frc.robot.Constants.SwerveConstants;
 
 public class Drivetrain extends SwerveDrivetrain implements Subsystem {
-  private SwerveModule leftFront;
-  private SwerveModule rightFront;
-  private SwerveModule leftBack;
-  private SwerveModule rightBack;
+  // private SwerveModule leftFront;
+  // private SwerveModule rightFront;
+  // private SwerveModule leftBack;
+  // private SwerveModule rightBack;
 
   private SlewRateLimiter frontLimiter;
   private SlewRateLimiter sideLimiter;
   private SlewRateLimiter turnLimiter;
 
-  private Pigeon2 gyro;
+  // private Pigeon2 gyro;
 
-  private SwerveDrivePoseEstimator poseEstimator;
+  // this.poseEstimator = new SwerveDrivePoseEstimator(
+  //     m_kinematics,
+  //     getHeadingRotation2d(),
+  //     getModulePositions(),
+  //     new Pose2d());
 
-  private static final double kSimLoopPeriod = 0.005; // 5 ms
+  private static final double kSimLoopPeriod = 0.02;
   private Notifier m_simNotifier = null;
   private double m_lastSimTime;
 
@@ -67,7 +73,7 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
 
   /** Creates a new SwerveDrivetrain. */
   public Drivetrain(SwerveDrivetrainConstants driveConstants, SwerveModuleConstants... modules) {
-    super(driveConstants, 0.005, modules);
+    super(driveConstants, kSimLoopPeriod, modules);
     new Thread(() -> {
       try{
         Thread.sleep(1000);
@@ -76,54 +82,53 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
       catch(Exception e){}
     }).start();
 
-    leftFront = new SwerveModule(
-      SwerveConstants.LEFT_FRONT_DRIVE_ID, 
-      SwerveConstants.LEFT_FRONT_TURN_ID, 
-      false, 
-      true, 
-      SwerveConstants.LEFT_FRONT_CANCODER_ID, 
-      SwerveConstants.LEFT_FRONT_OFFSET, 
-      false);
+    // this.leftFront = TunerConstants.DriveTrain.leftFront;
+    // this.leftBack = TunerConstants.DriveTrain.leftBack;
+    // this.rightFront = TunerConstants.DriveTrain.rightFront;
+    // this.rightBack = TunerConstants.DriveTrain.rightBack;
+    // this.leftFront = swervemod
+    // leftFront = new SwerveModule(
+    //   SwerveConstants.LEFT_FRONT_DRIVE_ID, 
+    //   SwerveConstants.LEFT_FRONT_TURN_ID, 
+    //   false, 
+    //   true, 
+    //   SwerveConstants.LEFT_FRONT_CANCODER_ID, 
+    //   SwerveConstants.LEFT_FRONT_OFFSET, 
+    //   false);
 
-    rightFront = new SwerveModule(
-      SwerveConstants.RIGHT_FRONT_DRIVE_ID, 
-      SwerveConstants.RIGHT_FRONT_TURN_ID, 
-      false, 
-      true, 
-      SwerveConstants.RIGHT_FRONT_CANCODER_ID, 
-      SwerveConstants.RIGHT_FRONT_OFFSET, 
-      false);
+    // rightFront = new SwerveModule(
+    //   SwerveConstants.RIGHT_FRONT_DRIVE_ID, 
+    //   SwerveConstants.RIGHT_FRONT_TURN_ID, 
+    //   false, 
+    //   true, 
+    //   SwerveConstants.RIGHT_FRONT_CANCODER_ID, 
+    //   SwerveConstants.RIGHT_FRONT_OFFSET, 
+    //   false);
 
-    leftBack = new SwerveModule(
-      SwerveConstants.LEFT_BACK_DRIVE_ID, 
-      SwerveConstants.LEFT_BACK_TURN_ID, 
-      false, 
-      true, 
-      SwerveConstants.LEFT_BACK_CANCODER_ID, 
-      SwerveConstants.LEFT_BACK_OFFSET, 
-      false);
+    // leftBack = new SwerveModule(
+    //   SwerveConstants.LEFT_BACK_DRIVE_ID, 
+    //   SwerveConstants.LEFT_BACK_TURN_ID, 
+    //   false, 
+    //   true, 
+    //   SwerveConstants.LEFT_BACK_CANCODER_ID, 
+    //   SwerveConstants.LEFT_BACK_OFFSET, 
+    //   false);
     
-    rightBack = new SwerveModule(
-      SwerveConstants.RIGHT_BACK_DRIVE_ID, 
-      SwerveConstants.RIGHT_BACK_TURN_ID, 
-      false, 
-      true, 
-      SwerveConstants.RIGHT_BACK_CANCODER_ID, 
-      SwerveConstants.RIGHT_BACK_OFFSET, 
-      false);
+    // rightBack = new SwerveModule(
+    //   SwerveConstants.RIGHT_BACK_DRIVE_ID, 
+    //   SwerveConstants.RIGHT_BACK_TURN_ID, 
+    //   false, 
+    //   true, 
+    //   SwerveConstants.RIGHT_BACK_CANCODER_ID, 
+    //   SwerveConstants.RIGHT_BACK_OFFSET, 
+    //   false);
 
     frontLimiter = new SlewRateLimiter(SwerveConstants.TELE_DRIVE_MAX_ACCELERATION);
     sideLimiter = new SlewRateLimiter(SwerveConstants.TELE_DRIVE_MAX_ACCELERATION);
     turnLimiter = new SlewRateLimiter(SwerveConstants.TELE_DRIVE_MAX_ANGULAR_ACCELERATION);
 
-    gyro = new Pigeon2(SwerveConstants.PIGEON_ID);
-
-    poseEstimator = new SwerveDrivePoseEstimator(
-      SwerveConstants.DRIVE_KINEMATICS,
-      getHeadingRotation2d(),
-      getModulePositions(),
-      new Pose2d());
-
+    // gyro = this.m_pigeon2; //new Pigeon2(SwerveConstants.PIGEON_ID);
+    
     AutoBuilder.configureHolonomic(
       this::getPose,
       this::resetPose,
@@ -138,19 +143,24 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
 
   @Override
   public void periodic() {
-    poseEstimator.update(getHeadingRotation2d(), getModulePositions());
+    // this.poseEstimator.update(getHeadingRotation2d(), getModulePositions());
 
-    SmarterDashboard.putNumber("Robot Angle", getHeading(), "Drivetrain");
-    SmarterDashboard.putString("Angular Speed", 
-        new DecimalFormat("#.00").format((-gyro.getRate() / 180)) + "pi rad/s",
-        "Drivetrain");
-
-    SmarterDashboard.putData("Left Front Module State", leftFront.getState(), "Drivetrain");
-    SmarterDashboard.putData("Right Front Module State", rightFront.getState(), "Drivetrain");
-    SmarterDashboard.putData("Left Back Module State", leftBack.getState(), "Drivetrain");
-    SmarterDashboard.putData("Right Back Module State", rightBack.getState(), "Drivetrain");
-    SmarterDashboard.putData("Odometry", getPose(), "Drivetrain");
-    SmarterDashboard.putData("Module States", getModuleStates(), "Drivetrain");
+    try {
+    
+        SmarterDashboard.putNumber("Robot Angle", getHeading(), "Drivetrain");
+        // SmarterDashboard.putString("Angular Speed", 
+        //     new DecimalFormat("#.00").format((-gyro.getRate() / 180)) + "pi rad/s",
+        //     "Drivetrain");
+    
+        // SmarterDashboard.putData("Left Front Module State", this.leftFront.getState(), "Drivetrain");
+        // SmarterDashboard.putData("Right Front Module State", this.rightFront.getState(), "Drivetrain");
+        // SmarterDashboard.putData("Left Back Module State", this.leftBack.getState(), "Drivetrain");
+        // SmarterDashboard.putData("Right Back Module State", this.rightBack.getState(), "Drivetrain");
+        SmarterDashboard.putData("Odometry", getPose(), "Drivetrain");
+        SmarterDashboard.putData("Module States", getModuleStates(), "Drivetrain");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   public void swerveDrive(double frontSpeed, double sideSpeed, double turnSpeed, 
@@ -173,62 +183,68 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
       chassisSpeeds = new ChassisSpeeds(frontSpeed, sideSpeed, turnSpeed);
     }
 
-    SwerveModuleState[] moduleStates = SwerveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(chassisSpeeds, centerOfRotation);
-
-    this.setControl(AutoRequest.withSpeeds(chassisSpeeds));
-
+    SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds, centerOfRotation);
+    
     setModuleStates(moduleStates);
+    
+    this.setControl(AutoRequest.withSpeeds(chassisSpeeds));
+  }
+
+  public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
+    return run(() -> this.setControl(requestSupplier.get()));
   }
 
   public void setAllIdleMode(boolean brake){
-    if(brake){
-      leftFront.setBrake(true);
-      rightFront.setBrake(true);
-      leftBack.setBrake(true);
-      rightBack.setBrake(true);
-    }
-    else{
-      leftFront.setBrake(false);
-      rightFront.setBrake(false);
-      leftBack.setBrake(false);
-      rightBack.setBrake(false);
-    }
+    // if(brake){
+    //   this.leftFront.setBrake(true);
+    //   this.rightFront.setBrake(true);
+    //   this.leftBack.setBrake(true);
+    //   this.rightBack.setBrake(true);
+    // }
+    // else{
+    //   this.leftFront.setBrake(false);
+    //   this.rightFront.setBrake(false);
+    //   this.leftBack.setBrake(false);
+    //   this.rightBack.setBrake(false);
+    // }
   }
 
   public void resetAllEncoders(){
-    leftFront.resetEncoders();
-    rightFront.resetEncoders();
-    leftBack.resetEncoders();
-    rightBack.resetEncoders();
+    // this.leftFront.resetEncoders();
+    // this.rightFront.resetEncoders();
+    // this.leftBack.resetEncoders();
+    // this.rightBack.resetEncoders();
   }
 
   public Pose2d getPose(){
-    return (this.getState().Pose != null) ? this.getState().Pose : poseEstimator.getEstimatedPosition();
+    return /* (this.getState().Pose != null) ? */ this.getState().Pose /* : new Pose2d()*/;
   }
 
   public void resetPose(Pose2d pose) {
-    poseEstimator.resetPosition(getHeadingRotation2d(), getModulePositions(), pose);
+    // this.poseEstimator.resetPosition(getHeadingRotation2d(), getModulePositions(), pose);
+    this.seedFieldRelative(pose);
   }
 
   public ChassisSpeeds getRobotRelativeSpeeds(){
-    return SwerveConstants.DRIVE_KINEMATICS.toChassisSpeeds(getModuleStates());
+    return m_kinematics.toChassisSpeeds(getModuleStates());
   }
 
   public void driveRobotRelative(ChassisSpeeds chassisSpeeds){
-    SwerveModuleState[] moduleStates = SwerveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(chassisSpeeds);
+    SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
     setModuleStates(moduleStates);
+    this.setControl(AutoRequest.withSpeeds(chassisSpeeds));
   }
 
   public void zeroHeading(){
-    gyro.setYaw(0);
+    this.m_pigeon2.setYaw(0);
   }
 
   public void setHeading(double heading){
-    gyro.setYaw(heading);
+    this.m_pigeon2.setYaw(heading);
   }
 
   public double getHeading(){
-    return Math.IEEEremainder(-gyro.getAngle(), 360); //clamp heading between -180 and 180
+    return this.getPose().getRotation().getDegrees(); // Math.IEEEremainder(-gyro.getAngle(), 360); //clamp heading between -180 and 180
   }
 
   public Rotation2d getHeadingRotation2d(){
@@ -236,36 +252,37 @@ public class Drivetrain extends SwerveDrivetrain implements Subsystem {
   }
 
   public void stopModules(){
-    leftFront.stop();
-    leftBack.stop();
-    rightFront.stop();
-    rightBack.stop();
+    // this.leftFront.stop();
+    // this.leftBack.stop();
+    // this.rightFront.stop();
+    // this.rightBack.stop();
   }
 
   public void setModuleStates(SwerveModuleState[] moduleStates){
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveConstants.DRIVETRAIN_MAX_SPEED);
-    leftFront.setDesiredState(moduleStates[0]);
-    rightFront.setDesiredState(moduleStates[1]);
-    leftBack.setDesiredState(moduleStates[2]);
-    rightBack.setDesiredState(moduleStates[3]);
+    // SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveConstants.DRIVETRAIN_MAX_SPEED);
+    // this.leftFront.setDesiredState(moduleStates[0]);
+    // this.rightFront.setDesiredState(moduleStates[1]);
+    // this.leftBack.setDesiredState(moduleStates[2]);
+    // this.rightBack.setDesiredState(moduleStates[3]);
   }
 
   public SwerveModuleState[] getModuleStates(){
-    SwerveModuleState[] states = new SwerveModuleState[4];
-    states[0] = leftFront.getState();
-    states[1] = rightFront.getState();
-    states[2] = leftBack.getState();
-    states[3] = rightBack.getState();
-    return states;
+    // SwerveModuleState[] states = new SwerveModuleState[4];
+    // states[0] = this.leftFront.getState();
+    // states[1] = this.rightFront.getState();
+    // states[2] = this.leftBack.getState();
+    // states[3] = this.rightBack.getState();
+    // return states;
+    return getState().ModuleStates;
   } 
 
   public SwerveModulePosition[] getModulePositions(){
-    SwerveModulePosition[] positions = new SwerveModulePosition[4];
-    positions[0] = leftFront.getPosition();
-    positions[1] = rightFront.getPosition();
-    positions[2] = leftBack.getPosition();
-    positions[3] = rightBack.getPosition();
-    return positions;
+    // SwerveModulePosition[] positions = new SwerveModulePosition[4];
+    // positions[0] = this.leftFront.getPosition();
+    // positions[1] = this.rightFront.getPosition();
+    // positions[2] = this.leftBack.getPosition();
+    // positions[3] = this.rightBack.getPosition();
+    return this.m_modulePositions;
   }
 
   public boolean isRedAlliance(){

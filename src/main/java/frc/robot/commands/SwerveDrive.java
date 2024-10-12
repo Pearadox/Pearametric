@@ -4,14 +4,25 @@
 
 package frc.robot.commands;
 
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotContainer;
+import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.Drivetrain;
 
 public class SwerveDrive extends Command {
   private Drivetrain drivetrain = Drivetrain.getInstance();
+
+  // private final SwerveRequest.FieldCentric drive =
+  //   new SwerveRequest.FieldCentric()
+  //       .withDeadband(SwerveConstants.TELE_DRIVE_MAX_SPEED * 0.1)
+  //       .withRotationalDeadband(
+  //           SwerveConstants.TELE_DRIVE_MAX_ANGULAR_SPEED * 0.1)
+  //       .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
 
   /** Creates a new SwerveDrive. */
   public SwerveDrive() {
@@ -33,6 +44,15 @@ public class SwerveDrive extends Command {
         !RobotContainer.driverController.getRawButton(XboxController.Button.kB.value),
         new Translation2d(),
         true);
+    // drivetrain
+    //     .applyRequest(
+    //         () ->
+    //             drive
+    //                 .withVelocityX(-RobotContainer.driverController.getLeftY() * SwerveConstants.TELE_DRIVE_MAX_SPEED)
+    //                 .withVelocityY(-RobotContainer.driverController.getLeftX() * SwerveConstants.TELE_DRIVE_MAX_SPEED)
+    //                 .withRotationalRate(
+    //                     -RobotContainer.driverController.getRightX() * SwerveConstants.TELE_DRIVE_MAX_ANGULAR_SPEED))
+    //     .ignoringDisable(true);
   }
 
   // Called once the command ends or is interrupted.
