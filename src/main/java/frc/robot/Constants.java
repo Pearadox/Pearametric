@@ -125,7 +125,12 @@ public final class Constants {
   }
   
   public static final class IntakeConstants{
-    public static final int INTAKE_ROLLER_ID = 21; //chang it later
+    public static final int ELEC_INTAKE_MOTOR_ID = 21; //change it later
+  }
+
+  public static final class HopperConstants {
+    public static final int HOP_TRANSPORT_MOTOR_ID = 22;
+    public static final int HOP_OUTTAKE_MOTOR_ID = 23;  
   }
 
   public class FieldConstants {
