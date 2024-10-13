@@ -60,13 +60,13 @@ public class Sim extends SubsystemBase {
       .withPosition(2, 6).getEntry();
   private static int currNum = (int) (componentNum.getDouble(0) + 0.5);
 
-  private static GenericEntry compX = componentConfig.add("comp x", currNum)
+  private static GenericEntry compX = componentConfig.add("comp x", -compZeros[X][currNum])
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(2, 0).getEntry();
-  private static GenericEntry compY = componentConfig.add("comp y", currNum)
+  private static GenericEntry compY = componentConfig.add("comp y", -compZeros[Y][currNum])
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(2, 1).getEntry();
-  private static GenericEntry compZ = componentConfig.add("comp z", currNum)
+  private static GenericEntry compZ = componentConfig.add("comp z", -compZeros[Z][currNum])
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(2, 2).getEntry();
   private static GenericEntry compRoll = componentConfig.add("comp roll", 0)
@@ -83,13 +83,13 @@ public class Sim extends SubsystemBase {
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", 0, "max", 3))
       .withPosition(7, 1).getEntry();
 
-  private static GenericEntry elecIntakeX = componentConfig.add("elecIntake x", currNum)
+  private static GenericEntry elecIntakeX = componentConfig.add("elecIntake x", -compZeros[X][4])
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(3, 0).getEntry();
-  private static GenericEntry elecIntakeY = componentConfig.add("elecIntake y", currNum)
+  private static GenericEntry elecIntakeY = componentConfig.add("elecIntake y", -compZeros[Y][4])
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(3, 1).getEntry();
-  private static GenericEntry elecIntakeZ = componentConfig.add("elecIntake z", currNum)
+  private static GenericEntry elecIntakeZ = componentConfig.add("elecIntake z", -compZeros[Z][4])
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
       .withPosition(3, 2).getEntry();
   private static GenericEntry elecIntakeRoll = componentConfig.add("elecIntake roll", 0)
@@ -213,18 +213,18 @@ public class Sim extends SubsystemBase {
 
     int currNum = (int) (componentNum.getDouble(0) + 0.5);
     Transform3d currComponent = new Transform3d(
-        compX.getDouble(0) - compZeros[X][currNum],
-        compY.getDouble(0) - compZeros[Y][currNum], 
-        compZ.getDouble(0) - compZeros[Z][currNum],
+        compX.getDouble(-compZeros[X][currNum]),
+        compY.getDouble(-compZeros[Y][currNum]), 
+        compZ.getDouble(-compZeros[Z][currNum]),
         new Rotation3d(
             Units.degreesToRadians(compRoll.getDouble(0)), 
             Units.degreesToRadians(compPitch.getDouble(0)),
             Units.degreesToRadians(compYaw.getDouble(0))));
 
     components[4] = new Transform3d(
-        elecIntakeX.getDouble(-0.34),
-        elecIntakeY.getDouble(0),
-        elecIntakeZ.getDouble(0.165),
+        elecIntakeX.getDouble(-compZeros[X][4]),
+        elecIntakeY.getDouble(-compZeros[Y][4]),
+        elecIntakeZ.getDouble(-compZeros[Z][4]),
         new Rotation3d(
             Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
             Units.degreesToRadians(elecIntakePitch.getDouble(0)),
