@@ -124,6 +124,7 @@ public class Sim extends SubsystemBase {
   private static boolean[] ballIsPresent = new boolean[FieldConstants.BASKETBALLS.length];
   private static boolean[] electroIsPresent = new boolean[FieldConstants.ELECTROLYTES.length];
   static { Arrays.fill(ballIsPresent, true); }
+  static { Arrays.fill(electroIsPresent, true); }
 
   private static Transform3d[] components = new Transform3d[6]; //5
   static { 
@@ -326,13 +327,15 @@ public class Sim extends SubsystemBase {
 
 
   public void visualizeElectrolytes() {
+  
     for (int i = 0; i < stagedElectrolytes.length; i++) {
       if (!electroIsPresent[i]) {
-        stagedElectrolytes[i] = null;
-      } else if (electroIsPresent[i] && stagedElectrolytes[i] == null) {
+        stagedElectrolytes[i] = origin;
+      } else if (electroIsPresent[i] && stagedElectrolytes[i].equals(origin)) {
         stagedElectrolytes[i] = FieldConstants.ELECTROLYTES[i];
       }
     }
+    Logger.recordOutput("Sim/Electrolytes", stagedElectrolytes);
 
 
     for (int i = 0; i < stagedElectrolytes.length; i++) {
@@ -340,10 +343,8 @@ public class Sim extends SubsystemBase {
       < FieldConstants.ELECTROLYTE_RADIUS) {
         hasElectrolyte = true;
         electroIsPresent[i] = false;
-
       }    
     }
-    Logger.recordOutput("Sim/Electrolytes", stagedElectrolytes);
   }
 
 
