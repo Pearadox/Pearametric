@@ -159,10 +159,10 @@ public final class Constants {
             FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
       }
       for (int i = 0; i < BASKETBALLS.length / 2; i++) {
-        // BASKETBALLS[i + BASKETBALLS.length / 2] = new Pose3d(new Translation3d(
-        //     FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
-        //     FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
-        BASKETBALLS[i + BASKETBALLS.length / 2] = flipAlliance(BASKETBALLS[i]);
+        BASKETBALLS[i + BASKETBALLS.length / 2] = new Pose3d(new Translation3d(
+            FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
+            FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
+        // BASKETBALLS[i + BASKETBALLS.length / 2] = flipAlliance(BASKETBALLS[i]);
       }
     }
 

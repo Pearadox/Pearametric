@@ -340,7 +340,6 @@ public class Sim extends SubsystemBase {
 
 
   public void visualizeElectrolytes() {
-
     elecIntakePose = robotPose.transformBy(components[4].plus(IntakeConstants.HELD_ELECTROLYTE_POS));
   
     for (int i = 0; i < stagedElectrolytes.length; i++) {
@@ -350,15 +349,21 @@ public class Sim extends SubsystemBase {
         stagedElectrolytes[i] = FieldConstants.ELECTROLYTES[i];
       }
     }
-    Logger.recordOutput("Sim/Electrolytes", stagedElectrolytes);
-
-
+    Logger.recordOutput("Sim/Staged Electrolytes", stagedElectrolytes);
+    
+    
     for (int i = 0; i < stagedElectrolytes.length; i++) {
       if (RobotContainer.driverController.getLeftTriggerAxis() > 0.5 && get3dDistance(stagedElectrolytes[i], elecIntakePose) 
-      < FieldConstants.ELECTROLYTE_RADIUS) {
+      < FieldConstants.ELECTROLYTE_RADIUS * 10) {
         electroIsPresent[i] = false;
         hasElectrolyte = true;
       }    
+    }
+    
+    if (hasElectrolyte) {
+      Logger.recordOutput("Sim/Held Electrolytes", new Pose3d[] { elecIntakePose });      
+    } else {      
+      Logger.recordOutput("Sim/Held Electrolytes", new Pose3d[] { });
     }
   }
 
