@@ -6,7 +6,6 @@ package frc.robot.subsystems;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Set;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -23,9 +22,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
@@ -128,7 +124,6 @@ public class Sim extends SubsystemBase {
   private static boolean[] ballIsPresent = new boolean[FieldConstants.BASKETBALLS.length];
   private static boolean[] electroIsPresent = new boolean[FieldConstants.ELECTROLYTES.length];
   static { Arrays.fill(ballIsPresent, true); }
-  private static Pose3d[] scoredBasketballs = new Pose3d[1];
 
   private static Transform3d[] components = new Transform3d[6]; //5
   static { 
@@ -142,13 +137,12 @@ public class Sim extends SubsystemBase {
   }
 
   private boolean testing = true;
-  private Pose3d robotPose, intake, startPose, endPose;
+  private Pose3d robotPose, intakePose, targetHoop, startPose, endPose;
   private double x = 0, y = 0, yaw = 0;
 
-  private boolean hasBasketball = false, dunkInit = false, dunking = false;
+  private boolean hasBasketball = false, canDunk = false, dunking = false;
   private boolean hasElectrolyte = false;
-
-  private double dunkSpeed = 2.0;
+  private double dunkSpeed = 6.0;
   private double duration;
 
   private Timer timer = new Timer();
@@ -256,11 +250,12 @@ public class Sim extends SubsystemBase {
   }
 
   public void visualizeBasketballs() {
-    intake = robotPose.transformBy(components[0].plus(ElevatorConstants.HELD_BASKETBALL_POS));
+    intakePose = robotPose.transformBy(components[0].plus(ElevatorConstants.HELD_BASKETBALL_POS));
 
+    // staged basketballs
     for (int i = 0; i < stagedBasketballs.length; i++) {
       if (RobotContainer.driverController.getLeftTriggerAxis() > 0.5 && 
-          get3dDistance(stagedBasketballs[i], intake) < 
+          get3dDistance(stagedBasketballs[i], intakePose) < 
               FieldConstants.BASKETBALL_RADIUS) {
         ballIsPresent[i] = false;
         hasBasketball = true;
@@ -272,53 +267,61 @@ public class Sim extends SubsystemBase {
         stagedBasketballs[i] = FieldConstants.BASKETBALLS[i];
       }      
     }
+    Logger.recordOutput("Sim/Staged Basketballs", stagedBasketballs);
 
+    // held basketballs
     if (hasBasketball) {
-      // for (Pose3d hoop : FieldConstants.HOOPS) {
-        // if (intake.getZ() > hoop.getZ() 
-        //     && get2dDistance(intake, hoop) < FieldConstants.HOOP_RADIUS * 5
-        //     && RobotContainer.driverController.getBButtonPressed()) {
-        //   scoringBasketball = true;
-        //   break;
-        // }
-      // }
-      if (RobotContainer.driverController.getBButton()) {
-        dunkInit = true;
-      }
-      Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { intake });
+      if (RobotContainer.driverController.getYButton()) {
+        targetHoop = FieldConstants.HIGH_HOOP;
+        canDunk = true;
+      }      
+      for (Pose3d hoop : FieldConstants.HOOPS) {
+        if (canDunk) break;
+
+        if (intakePose.getZ() > hoop.getZ() && get2dDistance(intakePose, hoop) < FieldConstants.HOOP_RADIUS * 2) {
+          targetHoop = hoop;
+          canDunk = true;
+        }
+      }      
+      Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { intakePose });
     } else {
       Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { } );
     }
 
-    if (dunkInit && !dunking) {
+    // starts dunk
+    if (canDunk && !dunking && RobotContainer.driverController.getBButton()) {
       hasBasketball = false;
-      dunkInit = false;
+      canDunk = false;
       dunking = true;
-
-      startPose = intake;
-      endPose = FieldConstants.LOW_HOOP;
-      duration = get3dDistance(startPose, endPose) / dunkSpeed;
-      
+      startPose = intakePose;
+      endPose = targetHoop;
+      duration = get3dDistance(startPose, endPose) / dunkSpeed;      
       timer.restart();
     }
 
+    // dunks
     if (dunking) {
-      if (timer.hasElapsed(duration)) { dunking = false; }
-      Logger.recordOutput("Sim/dur", duration);
-      Logger.recordOutput("Sim/timer", timer.get());
-
+      if (timer.hasElapsed(duration)) { 
+        dunking = false;
+        timer.stop();
+      }
+      canDunk = false;
       Logger.recordOutput("Sim/Scored Basketballs", new Pose3d[] {
           startPose.interpolate(endPose, timer.get() / duration) });
     } else {
       Logger.recordOutput("Sim/Scored Basketballs", new Pose3d[] { } );
     }
-
+    
     if (RobotContainer.driverController.getAButtonPressed()) {
       hasBasketball = false;
     }
-
-    Logger.recordOutput("Sim/dist", get2dDistance(intake, FieldConstants.HIGH_HOOP));
-    Logger.recordOutput("Sim/Staged Basketballs", stagedBasketballs);
+    if (RobotContainer.driverController.getXButtonPressed()) {
+      hasBasketball = true;
+    }
+    
+    Logger.recordOutput("Sim/hasBasketball", hasBasketball );
+    Logger.recordOutput("Sim/hasBasketball", canDunk );
+    Logger.recordOutput("Sim/hasBasketball", dunking );
   }
 
 
@@ -333,7 +336,7 @@ public class Sim extends SubsystemBase {
 
 
     for (int i = 0; i < stagedElectrolytes.length; i++) {
-      if (RobotContainer.driverController.getLeftBumper() && get3dDistance(stagedElectrolytes[i], intake) 
+      if (RobotContainer.driverController.getLeftBumper() && get3dDistance(stagedElectrolytes[i], intakePose) 
       < FieldConstants.ELECTROLYTE_RADIUS) {
         hasElectrolyte = true;
         electroIsPresent[i] = false;

@@ -4,10 +4,6 @@
 
 package frc.robot;
 
-import java.util.Observable;
-
-import javax.swing.text.Highlighter.HighlightPainter;
-
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
@@ -161,9 +157,10 @@ public final class Constants {
             FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
       }
       for (int i = 0; i < BASKETBALLS.length / 2; i++) {
-        BASKETBALLS[i + BASKETBALLS.length / 2] = new Pose3d(new Translation3d(
-            FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
-            FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
+        // BASKETBALLS[i + BASKETBALLS.length / 2] = new Pose3d(new Translation3d(
+        //     FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
+        //     FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
+        BASKETBALLS[i + BASKETBALLS.length / 2] = flipAlliance(BASKETBALLS[i]);
       }
     }
 
@@ -191,6 +188,21 @@ public final class Constants {
     public static final Pose3d LOW_HOOP = new Pose3d(
         new Translation3d(0.883, FIELD_WIDTH - 6.531, Units.inchesToMeters(36)), new Rotation3d());
 
-    public static final Pose3d[] HOOPS = { HIGH_HOOP, MID_HOOP, LOW_HOOP };
+    public static final Pose3d[] HOOPS = { 
+      HIGH_HOOP, 
+      MID_HOOP, 
+      LOW_HOOP, 
+      flipAlliance(HIGH_HOOP),
+      flipAlliance(MID_HOOP),
+      flipAlliance(LOW_HOOP),
+    };
+    
+    public static Pose3d flipAlliance(Pose3d blue) {
+      return new Pose3d(new Translation3d(
+          FieldConstants.FIELD_LENGTH - blue.getX(),
+          FieldConstants.FIELD_WIDTH - blue.getY(),
+          blue.getZ()),
+          blue.getRotation().plus(new Rotation3d(0, 0, Math.PI)));
+    }
   }
 }
