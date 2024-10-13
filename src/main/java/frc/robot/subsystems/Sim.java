@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.IntakeConstants;
 import frc.robot.RobotContainer;
 
 public class Sim extends SubsystemBase {  
@@ -139,6 +140,7 @@ public class Sim extends SubsystemBase {
 
   private boolean testing = true;
   private Pose3d robotPose, intakePose, targetHoop, startPose, endPose;
+  private Pose3d elecIntakePose;
   private double x = 0, y = 0, yaw = 0;
 
   private boolean hasBasketball = false, canDunk = false, dunking = false;
@@ -193,9 +195,20 @@ public class Sim extends SubsystemBase {
         + manipZ.getDouble(0);
     double manipPitch = -Math.PI / 2.0 + 
         (RobotContainer.driverController.getLeftTriggerAxis() * Math.PI * 2.0 / 3.0);
+
+    double elecIntakePitchd = -Math.PI / 2.0 +
+        (RobotContainer.operatorController.getLeftTriggerAxis() * Math.PI * 2.0 / 3.0);
+
+    // if (RobotContainer.driverController.getLeftBumperPressed()){
+    //   elecIntakePitch.getDouble(180);
+    // } else {
+    //   elecIntakePitch.getDouble(0);
+    // }
+
+    //elecintake pitch always either up or either down
     
 
-    components[1] = new Transform3d(new Translation3d(
+    components[1] = new Transform3d(new Translation3d(  
         0, 
         0, 
         Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MANIPULATOR_MAX_EXTEND))), 
@@ -227,7 +240,7 @@ public class Sim extends SubsystemBase {
         elecIntakeZ.getDouble(-compZeros[Z][4]),
         new Rotation3d(
             Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
-            Units.degreesToRadians(elecIntakePitch.getDouble(0)),
+            Units.degreesToRadians(elecIntakePitch.getDouble(elecIntakePitchd)),
             Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
             
     // components[5] = new Transform3d(
@@ -327,6 +340,8 @@ public class Sim extends SubsystemBase {
 
 
   public void visualizeElectrolytes() {
+
+    elecIntakePose = robotPose.transformBy(components[4].plus(IntakeConstants.HELD_ELECTROLYTE_POS));
   
     for (int i = 0; i < stagedElectrolytes.length; i++) {
       if (!electroIsPresent[i]) {
@@ -339,10 +354,10 @@ public class Sim extends SubsystemBase {
 
 
     for (int i = 0; i < stagedElectrolytes.length; i++) {
-      if (RobotContainer.driverController.getLeftBumper() && get3dDistance(stagedElectrolytes[i], intakePose) 
+      if (RobotContainer.driverController.getLeftTriggerAxis() > 0.5 && get3dDistance(stagedElectrolytes[i], elecIntakePose) 
       < FieldConstants.ELECTROLYTE_RADIUS) {
-        hasElectrolyte = true;
         electroIsPresent[i] = false;
+        hasElectrolyte = true;
       }    
     }
   }

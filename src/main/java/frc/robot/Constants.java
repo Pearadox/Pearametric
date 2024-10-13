@@ -129,6 +129,8 @@ public final class Constants {
   
   public static final class IntakeConstants{
     public static final int ELEC_INTAKE_MOTOR_ID = 21; //change it later
+
+    public static final Transform3d HELD_ELECTROLYTE_POS = new Transform3d(0,0,0, new Rotation3d()); //TODO: find stowed and deployed
   }
 
   public static final class HopperConstants {
