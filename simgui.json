@@ -5,6 +5,11 @@
       "/SmartDashboard/Auto Chooser": "String Chooser"
     }
   },
+  "NetworkTables": {
+    "Retained Values": {
+      "open": false
+    }
+  },
   "NetworkTables Info": {
     "visible": true
   }

@@ -140,12 +140,15 @@ public class Sim extends SubsystemBase {
   }
 
   private boolean testing = true;
-  private static Pose3d robotPose, intake;
+  private Pose3d robotPose, intake, startPose, endPose;
   private double x = 0, y = 0, yaw = 0;
 
-  private static boolean hasBasketball = false, scoringBasketball = false;
+  private boolean hasBasketball = false, dunkInit = false, dunking = false;
 
-  private static double dunkSpeed = 2.0;
+  private double dunkSpeed = 2.0;
+  private double duration;
+
+  private Timer timer = new Timer();
 
   public Sim() {}
   
@@ -274,16 +277,35 @@ public class Sim extends SubsystemBase {
         //   break;
         // }
       // }
-      if (RobotContainer.driverController.getBButtonPressed()) {
-        scoringBasketball = true;
+      if (RobotContainer.driverController.getBButton()) {
+        dunkInit = true;
       }
       Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { intake });
     } else {
       Logger.recordOutput("Sim/Held Basketballs", new Pose3d[] { } );
     }
 
-    if (scoringBasketball) {      
-      score();
+    if (dunkInit && !dunking) {
+      hasBasketball = false;
+      dunkInit = false;
+      dunking = true;
+
+      startPose = intake;
+      endPose = FieldConstants.LOW_HOOP;
+      duration = get3dDistance(startPose, endPose) / dunkSpeed;
+      
+      timer.restart();
+    }
+
+    if (dunking) {
+      if (timer.hasElapsed(duration)) { dunking = false; }
+      Logger.recordOutput("Sim/dur", duration);
+      Logger.recordOutput("Sim/timer", timer.get());
+
+      Logger.recordOutput("Sim/Scored Basketballs", new Pose3d[] {
+          startPose.interpolate(endPose, timer.get() / duration) });
+    } else {
+      Logger.recordOutput("Sim/Scored Basketballs", new Pose3d[] { } );
     }
 
     if (RobotContainer.driverController.getAButtonPressed()) {
@@ -305,34 +327,6 @@ public class Sim extends SubsystemBase {
       Math.pow(b.getX() - a.getX(), 2) + 
       Math.pow(b.getY() - a.getY(), 2) + 
       Math.pow(b.getZ() - a.getZ(), 2));
-  }
-
-  public static Command score() {
-    return new ScheduleCommand( // Branch off and exit immediately
-        Commands.defer(
-                () -> {
-                  hasBasketball = false;
-                  scoringBasketball = false;
-                  final Pose3d startPose = intake;
-                  final Pose3d endPose = FieldConstants.LOW_HOOP;
-
-                  final double duration =
-                      startPose.getTranslation().getDistance(endPose.getTranslation()) / dunkSpeed;
-                  final Timer timer = new Timer();
-                  timer.start();
-                  return Commands.run(
-                          () ->
-                              Logger.recordOutput(
-                                  "Sim/Scored Basketballs",
-                                  new Pose3d[] {
-                                    startPose.interpolate(endPose, timer.get() / duration)
-                                  }))
-                      .until(() -> timer.hasElapsed(duration))
-                      .finallyDo(
-                          () -> Logger.recordOutput("NoteVisualizer/Scored Basketballs", new Pose3d[] {}));
-                },
-                Set.of())
-            .ignoringDisable(true));
   }
 }
 
