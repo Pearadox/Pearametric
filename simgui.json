@@ -11,6 +11,9 @@
     },
     "transitory": {
       "AdvantageKit": {
+        "DriverStation": {
+          "open": true
+        },
         "open": true
       }
     }

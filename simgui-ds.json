@@ -1,15 +1,9 @@
 {
-  "Joysticks": {
-    "window": {
-      "visible": false
-    }
-  },
   "Keyboard 0 Settings": {
     "window": {
       "visible": true
     }
   },
-  "disable": true,
   "keyboardJoysticks": [
     {
       "axisConfig": [
