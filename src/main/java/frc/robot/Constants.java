@@ -149,6 +149,9 @@ public final class Constants {
     public static final double BASKETBALL_RADIUS = Units.inchesToMeters(5);
     public static final double BASKETBALL_CAD_OFFSET = Units.inchesToMeters(1.7);
 
+    public static final double ELECTROLYTE_SEPARATION = Units.inchesToMeters(6);
+    public static final double ELECTROLYTE_RADIUS = Units.inchesToMeters(2.5);
+
     // game piece locations
     public static final Pose3d[] BASKETBALLS = new Pose3d[20];
     static {
@@ -162,6 +165,21 @@ public final class Constants {
             FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
             FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
       }
+    }
+
+    public static final Pose3d[] ELECTROLYTES = new Pose3d[8];
+    static{
+      for (int i = 0; i < ELECTROLYTES.length/2; i++){
+        ELECTROLYTES[i] = new Pose3d(new Translation3d(
+          ELECTROLYTE_SEPARATION * (i + 1),
+          FIELD_WIDTH / 3, ELECTROLYTE_RADIUS), new Rotation3d());
+      }
+      for (int i = 0; i <ELECTROLYTES.length/2; i++){
+        ELECTROLYTES[i + ELECTROLYTES.length / 2] = new Pose3d(new Translation3d(
+          FIELD_LENGTH - ELECTROLYTE_SEPARATION * (i + 1),
+          FIELD_WIDTH / 3, ELECTROLYTE_RADIUS), new Rotation3d());
+      }
+
     }
 
     public static final double HOOP_RADIUS = Units.inchesToMeters(12);

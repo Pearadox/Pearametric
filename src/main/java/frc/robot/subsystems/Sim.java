@@ -124,7 +124,9 @@ public class Sim extends SubsystemBase {
       .withPosition(6, 5).getEntry();
 
   private static Pose3d[] stagedBasketballs = Arrays.copyOf(FieldConstants.BASKETBALLS, FieldConstants.BASKETBALLS.length);
+  private static Pose3d[] stagedElectrolytes = Arrays.copyOf(FieldConstants.ELECTROLYTES, FieldConstants.ELECTROLYTES.length);
   private static boolean[] ballIsPresent = new boolean[FieldConstants.BASKETBALLS.length];
+  private static boolean[] electroIsPresent = new boolean[FieldConstants.ELECTROLYTES.length];
   static { Arrays.fill(ballIsPresent, true); }
   private static Pose3d[] scoredBasketballs = new Pose3d[1];
 
@@ -144,6 +146,7 @@ public class Sim extends SubsystemBase {
   private double x = 0, y = 0, yaw = 0;
 
   private boolean hasBasketball = false, dunkInit = false, dunking = false;
+  private boolean hasElectrolyte = false;
 
   private double dunkSpeed = 2.0;
   private double duration;
@@ -159,6 +162,7 @@ public class Sim extends SubsystemBase {
     visualizeRobot();
     visualizeComponents();
     visualizeBasketballs();
+    visualizeElectrolytes();
   }
 
   public void visualizeOrigin() {            
@@ -194,6 +198,7 @@ public class Sim extends SubsystemBase {
         + manipZ.getDouble(0);
     double manipPitch = -Math.PI / 2.0 + 
         (RobotContainer.driverController.getLeftTriggerAxis() * Math.PI * 2.0 / 3.0);
+    
 
     components[1] = new Transform3d(new Translation3d(
         0, 
@@ -230,14 +235,14 @@ public class Sim extends SubsystemBase {
             Units.degreesToRadians(elecIntakePitch.getDouble(0)),
             Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
             
-    components[5] = new Transform3d(
-        elecIntakeX.getDouble(0),
-        elecIntakeY.getDouble(0),
-        elecIntakeZ.getDouble(0),
-        new Rotation3d(
-            Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
-            Units.degreesToRadians(elecIntakePitch.getDouble(0)),
-            Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
+    // components[5] = new Transform3d(
+    //     elecIntakeX.getDouble(0),
+    //     elecIntakeY.getDouble(0),
+    //     elecIntakeZ.getDouble(0),
+    //     new Rotation3d(
+    //         Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
+    //         Units.degreesToRadians(elecIntakePitch.getDouble(0)),
+    //         Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
 
     components[currNum] = currComponent;
     components[0] = components[1].plus(components[0]).plus(new Transform3d(
@@ -315,6 +320,29 @@ public class Sim extends SubsystemBase {
     Logger.recordOutput("Sim/dist", get2dDistance(intake, FieldConstants.HIGH_HOOP));
     Logger.recordOutput("Sim/Staged Basketballs", stagedBasketballs);
   }
+
+
+  public void visualizeElectrolytes() {
+    for (int i = 0; i < stagedElectrolytes.length; i++) {
+      if (!electroIsPresent[i]) {
+        stagedElectrolytes[i] = null;
+      } else if (electroIsPresent[i] && stagedElectrolytes[i] == null) {
+        stagedElectrolytes[i] = FieldConstants.ELECTROLYTES[i];
+      }
+    }
+
+
+    for (int i = 0; i < stagedElectrolytes.length; i++) {
+      if (RobotContainer.driverController.getLeftBumper() && get3dDistance(stagedElectrolytes[i], intake) 
+      < FieldConstants.ELECTROLYTE_RADIUS) {
+        hasElectrolyte = true;
+        electroIsPresent[i] = false;
+
+      }    
+    }
+    Logger.recordOutput("Sim/Electrolytes", stagedElectrolytes);
+  }
+
 
   public double get2dDistance(Pose3d a, Pose3d b) {
     return Math.sqrt(
