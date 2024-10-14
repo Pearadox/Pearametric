@@ -118,26 +118,6 @@ public final class Constants {
     public static final double MID_HOOP_POS = 5;
     public static final double HIGH_HOOP_POS = 7;
     public static final double STOWED_POS = 1;
-
-    // how far can each component of the elevator extend vertically
-    public static final double MANIPULATOR_MAX_EXTEND = Units.inchesToMeters(86);
-    public static final double TOP_STAGE_MAX_EXTEND = Units.inchesToMeters(58);
-    public static final double MID_STAGE_MAX_EXTEND = Units.inchesToMeters(30);
-
-    public static final Transform3d HELD_BASKETBALL_POS = new Transform3d(0.25, 0, 0.05, new Rotation3d());
-  }
-  
-  public static final class IntakeConstants{
-    public static final int ELEC_INTAKE_MOTOR_ID = 21; //change it later
-
-    public static final Transform3d HELD_ELECTROLYTE_POS = new Transform3d(
-      -0.26, FieldConstants.ELECTROLYTE_RADIUS * -2.5, 0.72, new Rotation3d());
-    //TODO: find stowed and deployed
-  }
-
-  public static final class HopperConstants {
-    public static final int HOP_TRANSPORT_MOTOR_ID = 22;
-    public static final int HOP_OUTTAKE_MOTOR_ID = 23;  
   }
 
   public class FieldConstants {
