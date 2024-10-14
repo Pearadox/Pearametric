@@ -197,8 +197,8 @@ public class Sim extends SubsystemBase {
     double manipPitch = -Math.PI / 2.0 + 
         (RobotContainer.driverController.getLeftTriggerAxis() * Math.PI * 2.0 / 3.0);
 
-    double elecIntakePitchd = -Math.PI / 2.0 +
-        (RobotContainer.operatorController.getLeftTriggerAxis() * Math.PI * 2.0 / 3.0);
+    double elecIntakePitchd = Units.degreesToRadians(30) +
+        (RobotContainer.operatorController.getLeftTriggerAxis() * Units.degreesToRadians(90));
 
     // if (RobotContainer.driverController.getLeftBumperPressed()){
     //   elecIntakePitch.getDouble(180);
@@ -289,15 +289,14 @@ public class Sim extends SubsystemBase {
     Logger.recordOutput("Sim/Staged Basketballs", stagedBasketballs);
 
     // held basketballs
+    canDunk = false;
     if (hasBasketball) {
       // if (RobotContainer.driverController.getYButton()) {
       //   targetHoop = FieldConstants.HIGH_HOOP;
       //   canDunk = true;
       // }      
       for (Pose3d hoop : FieldConstants.HOOPS) {
-        if (canDunk) break;
-
-        if (intakePose.getZ() > hoop.getZ() && get2dDistance(intakePose, hoop) < FieldConstants.HOOP_RADIUS * 2) {
+        if (intakePose.getZ() > hoop.getZ() && get2dDistance(intakePose, hoop) < FieldConstants.HOOP_RADIUS) {
           targetHoop = hoop;
           canDunk = true;
         }
@@ -342,7 +341,7 @@ public class Sim extends SubsystemBase {
 
 
   public void visualizeElectrolytes() {
-    elecIntakePose = robotPose.transformBy(components[4].plus(IntakeConstants.HELD_ELECTROLYTE_POS));
+    elecIntakePose = robotPose.transformBy(components[4]);
     hopperPose = robotPose.transformBy(IntakeConstants.HELD_ELECTROLYTE_POS);
   
     for (int i = 0; i < stagedElectrolytes.length; i++) {
@@ -356,8 +355,8 @@ public class Sim extends SubsystemBase {
     
     
     for (int i = 0; i < stagedElectrolytes.length; i++) {
-      if (get2dDistance(stagedElectrolytes[i], elecIntakePose) 
-          < FieldConstants.ELECTROLYTE_RADIUS * 10) {
+      if (get2dDistance(stagedElectrolytes[i], elecIntakePose) < FieldConstants.ELECTROLYTE_RADIUS * 5
+          && RobotContainer.operatorController.getLeftTriggerAxis() < -0.5) {
         electroIsPresent[i] = false;
         hasElectrolyte = true;
         numElectrolytes++;
@@ -365,11 +364,10 @@ public class Sim extends SubsystemBase {
     }
     
     // held electrolytes
+    canDump = false;
     if (hasElectrolyte) {      
-      for (Pose3d tank : FieldConstants.DUNK_TANKS) {
-        if (canDump) break;
-
-        if (get2dDistance(robotPose, tank) < FieldConstants.DUNK_TANK_RADIUS * 2) {
+      for (Pose3d tank : FieldConstants.DUNK_TANKS) {        
+        if (get2dDistance(hopperPose, tank) < FieldConstants.DUNK_TANK_RADIUS * 2) {
           targetTank = tank;
           canDump = true;
         }
@@ -379,7 +377,7 @@ public class Sim extends SubsystemBase {
       
       for (int i = 0; i < numElectrolytes; i++) {
         heldElectrolytes[i] = hopperPose.transformBy(new Transform3d(new Translation3d(
-          0, FieldConstants.ELECTROLYTE_RADIUS * i, 0), new Rotation3d()));
+          0, FieldConstants.ELECTROLYTE_RADIUS * i * 2, 0), new Rotation3d()));
       }
 
       Logger.recordOutput("Sim/Held Electrolytes", heldElectrolytes);
@@ -395,17 +393,18 @@ public class Sim extends SubsystemBase {
       dumping = true;
       startPose = heldElectrolytes[0];
       endPose = targetTank;
-      duration = get3dDistance(startPose, endPose) / dunkSpeed;      
+      duration = get3dDistance(startPose, endPose) / dumpSpeed;      
       timer.restart();
     }
 
     // dunks
     if (dumping) {
       canDump = false;
+      scoredElectrolytes = new Pose3d[numElectrolytes];
       for (int i = 0; i < numElectrolytes; i++) {
         scoredElectrolytes[i] = startPose.interpolate(endPose, timer.get() / duration)
             .transformBy(new Transform3d(new Translation3d(
-                0, FieldConstants.ELECTROLYTE_RADIUS * i, 0), new Rotation3d()));        
+                0, FieldConstants.ELECTROLYTE_RADIUS * i * 2, 0), new Rotation3d()));        
       }
       Logger.recordOutput("Sim/Scored Electrolytes", scoredElectrolytes);
 

@@ -131,7 +131,7 @@ public final class Constants {
     public static final int ELEC_INTAKE_MOTOR_ID = 21; //change it later
 
     public static final Transform3d HELD_ELECTROLYTE_POS = new Transform3d(
-      -0.34, FieldConstants.ELECTROLYTE_RADIUS * -2.5, 0.65, new Rotation3d());
+      -0.26, FieldConstants.ELECTROLYTE_RADIUS * -2.5, 0.72, new Rotation3d());
     //TODO: find stowed and deployed
   }
 
