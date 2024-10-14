@@ -130,7 +130,9 @@ public final class Constants {
   public static final class IntakeConstants{
     public static final int ELEC_INTAKE_MOTOR_ID = 21; //change it later
 
-    public static final Transform3d HELD_ELECTROLYTE_POS = new Transform3d(0,0,0, new Rotation3d()); //TODO: find stowed and deployed
+    public static final Transform3d HELD_ELECTROLYTE_POS = new Transform3d(
+      -0.34, FieldConstants.ELECTROLYTE_RADIUS * -2.5, 0.65, new Rotation3d());
+    //TODO: find stowed and deployed
   }
 
   public static final class HopperConstants {
@@ -159,10 +161,10 @@ public final class Constants {
             FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
       }
       for (int i = 0; i < BASKETBALLS.length / 2; i++) {
-        // BASKETBALLS[i + BASKETBALLS.length / 2] = new Pose3d(new Translation3d(
-        //     FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
-        //     FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
-        BASKETBALLS[i + BASKETBALLS.length / 2] = flipAlliance(BASKETBALLS[i]);
+        BASKETBALLS[i + BASKETBALLS.length / 2] = new Pose3d(new Translation3d(
+            FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
+            FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
+        // BASKETBALLS[i + BASKETBALLS.length / 2] = flipAlliance(BASKETBALLS[i]);
       }
     }
 
@@ -178,7 +180,6 @@ public final class Constants {
           FIELD_LENGTH - ELECTROLYTE_SEPARATION * (i + 1),
           FIELD_WIDTH / 3, ELECTROLYTE_RADIUS), new Rotation3d());
       }
-
     }
 
     public static final double HOOP_RADIUS = Units.inchesToMeters(12);
@@ -198,6 +199,19 @@ public final class Constants {
       flipAlliance(MID_HOOP),
       flipAlliance(LOW_HOOP),
     };
+
+    public static final double DUNK_TANK_RADIUS = Units.inchesToMeters(24);
+
+    public static final Pose3d BLUE_TANK = new Pose3d(new Translation3d(
+        FIELD_LENGTH - Units.inchesToMeters(120),
+        Units.inchesToMeters(60), 
+        Units.inchesToMeters(24)),
+        new Rotation3d());
+
+    public static final Pose3d BONUS_MODE_TANK = new Pose3d(new Translation3d(
+        FIELD_LENGTH / 2, FIELD_WIDTH / 2, Units.inchesToMeters(24)), new Rotation3d());
+
+    public static final Pose3d[] DUNK_TANKS = { BLUE_TANK, BONUS_MODE_TANK, flipAlliance(BLUE_TANK) };
     
     public static Pose3d flipAlliance(Pose3d blue) {
       return new Pose3d(new Translation3d(

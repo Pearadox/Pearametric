@@ -139,14 +139,15 @@ public class Sim extends SubsystemBase {
   }
 
   private boolean testing = true;
-  private Pose3d robotPose, intakePose, targetHoop, startPose, endPose;
-  private Pose3d elecIntakePose;
+  private Pose3d robotPose, intakePose, targetHoop, startPose, endPose, elecIntakePose, targetTank, hopperPose;
   private double x = 0, y = 0, yaw = 0;
 
   private boolean hasBasketball = false, canDunk = false, dunking = false;
-  private boolean hasElectrolyte = false;
-  private double dunkSpeed = 6.0;
+  private boolean hasElectrolyte = false, canDump = false, dumping = false;
+  private double dunkSpeed = 6.0, dumpSpeed = 3.0;
   private double duration;
+  private int numElectrolytes;
+  private Pose3d[] heldElectrolytes, scoredElectrolytes;
 
   private Timer timer = new Timer();
 
@@ -253,9 +254,13 @@ public class Sim extends SubsystemBase {
     //         Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
 
     components[currNum] = currComponent;
+
     components[0] = components[1].plus(components[0]).plus(new Transform3d(
         new Translation3d(), 
         new Rotation3d(0, manipPitch, 0)));
+    components[4] = components[4].plus(new Transform3d(
+        new Translation3d(), 
+        new Rotation3d(0, elecIntakePitchd, 0)));
 
     Logger.recordOutput("Sim/Components Tranform3d[]", components );
     Logger.recordOutput("Sim/Robot Pose");
@@ -285,10 +290,10 @@ public class Sim extends SubsystemBase {
 
     // held basketballs
     if (hasBasketball) {
-      if (RobotContainer.driverController.getYButton()) {
-        targetHoop = FieldConstants.HIGH_HOOP;
-        canDunk = true;
-      }      
+      // if (RobotContainer.driverController.getYButton()) {
+      //   targetHoop = FieldConstants.HIGH_HOOP;
+      //   canDunk = true;
+      // }      
       for (Pose3d hoop : FieldConstants.HOOPS) {
         if (canDunk) break;
 
@@ -327,10 +332,7 @@ public class Sim extends SubsystemBase {
     }
     
     if (RobotContainer.driverController.getAButtonPressed()) {
-      hasBasketball = false;
-    }
-    if (RobotContainer.driverController.getXButtonPressed()) {
-      hasBasketball = true;
+      hasBasketball = !hasBasketball;
     }
     
     Logger.recordOutput("Sim/hasBasketball", hasBasketball );
@@ -340,8 +342,8 @@ public class Sim extends SubsystemBase {
 
 
   public void visualizeElectrolytes() {
-
     elecIntakePose = robotPose.transformBy(components[4].plus(IntakeConstants.HELD_ELECTROLYTE_POS));
+    hopperPose = robotPose.transformBy(IntakeConstants.HELD_ELECTROLYTE_POS);
   
     for (int i = 0; i < stagedElectrolytes.length; i++) {
       if (!electroIsPresent[i]) {
@@ -350,15 +352,70 @@ public class Sim extends SubsystemBase {
         stagedElectrolytes[i] = FieldConstants.ELECTROLYTES[i];
       }
     }
-    Logger.recordOutput("Sim/Electrolytes", stagedElectrolytes);
-
-
+    Logger.recordOutput("Sim/Staged Electrolytes", stagedElectrolytes);
+    
+    
     for (int i = 0; i < stagedElectrolytes.length; i++) {
-      if (RobotContainer.driverController.getLeftTriggerAxis() > 0.5 && get3dDistance(stagedElectrolytes[i], elecIntakePose) 
-      < FieldConstants.ELECTROLYTE_RADIUS) {
+      if (get2dDistance(stagedElectrolytes[i], elecIntakePose) 
+          < FieldConstants.ELECTROLYTE_RADIUS * 10) {
         electroIsPresent[i] = false;
         hasElectrolyte = true;
+        numElectrolytes++;
       }    
+    }
+    
+    // held electrolytes
+    if (hasElectrolyte) {      
+      for (Pose3d tank : FieldConstants.DUNK_TANKS) {
+        if (canDump) break;
+
+        if (get2dDistance(robotPose, tank) < FieldConstants.DUNK_TANK_RADIUS * 2) {
+          targetTank = tank;
+          canDump = true;
+        }
+      }
+
+      heldElectrolytes = new Pose3d[numElectrolytes];
+      
+      for (int i = 0; i < numElectrolytes; i++) {
+        heldElectrolytes[i] = hopperPose.transformBy(new Transform3d(new Translation3d(
+          0, FieldConstants.ELECTROLYTE_RADIUS * i, 0), new Rotation3d()));
+      }
+
+      Logger.recordOutput("Sim/Held Electrolytes", heldElectrolytes);
+    } else {      
+      Logger.recordOutput("Sim/Held Electrolytes", new Pose3d[] { });
+    }
+
+    // starts dump
+    if (canDump && !dumping && RobotContainer.driverController.getXButton()) {
+      Arrays.fill(electroIsPresent, true);
+      hasElectrolyte = false;
+      canDump = false;
+      dumping = true;
+      startPose = heldElectrolytes[0];
+      endPose = targetTank;
+      duration = get3dDistance(startPose, endPose) / dunkSpeed;      
+      timer.restart();
+    }
+
+    // dunks
+    if (dumping) {
+      canDump = false;
+      for (int i = 0; i < numElectrolytes; i++) {
+        scoredElectrolytes[i] = startPose.interpolate(endPose, timer.get() / duration)
+            .transformBy(new Transform3d(new Translation3d(
+                0, FieldConstants.ELECTROLYTE_RADIUS * i, 0), new Rotation3d()));        
+      }
+      Logger.recordOutput("Sim/Scored Electrolytes", scoredElectrolytes);
+
+      if (timer.hasElapsed(duration)) { 
+        dumping = false;
+        numElectrolytes = 0;
+        timer.stop();
+      }
+    } else {
+      Logger.recordOutput("Sim/Scored Electrolytes", new Pose3d[] { } );
     }
   }
 
