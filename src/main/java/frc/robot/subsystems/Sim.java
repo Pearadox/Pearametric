@@ -240,7 +240,7 @@ public class Sim extends SubsystemBase {
         elecIntakeZ.getDouble(-compZeros[Z][4]),
         new Rotation3d(
             Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
-            Units.degreesToRadians(elecIntakePitch.getDouble(elecIntakePitchd)),
+            elecIntakePitchd,
             Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
             
     // components[5] = new Transform3d(
