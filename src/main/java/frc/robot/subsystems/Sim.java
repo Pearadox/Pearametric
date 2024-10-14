@@ -198,7 +198,7 @@ public class Sim extends SubsystemBase {
         (RobotContainer.driverController.getLeftTriggerAxis() * Math.PI * 2.0 / 3.0);
 
     double elecIntakePitchd = Units.degreesToRadians(30) +
-        (RobotContainer.operatorController.getLeftTriggerAxis() * Units.degreesToRadians(90));
+        (-RobotContainer.operatorController.getLeftTriggerAxis() * Units.degreesToRadians(90));
 
     // if (RobotContainer.driverController.getLeftBumperPressed()){
     //   elecIntakePitch.getDouble(180);
@@ -241,7 +241,7 @@ public class Sim extends SubsystemBase {
         elecIntakeZ.getDouble(-compZeros[Z][4]),
         new Rotation3d(
             Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
-            elecIntakePitchd,
+            Units.degreesToRadians(elecIntakePitch.getDouble(0)),
             Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
             
     // components[5] = new Transform3d(
@@ -276,7 +276,7 @@ public class Sim extends SubsystemBase {
       if (RobotContainer.driverController.getLeftTriggerAxis() > 0.5 && 
           get3dDistance(stagedBasketballs[i], intakePose) < 
               FieldConstants.BASKETBALL_RADIUS) {
-        ballIsPresent[i] = false;
+        if (!hasBasketball) ballIsPresent[i] = false;
         hasBasketball = true;
       }
 
@@ -356,7 +356,7 @@ public class Sim extends SubsystemBase {
     
     for (int i = 0; i < stagedElectrolytes.length; i++) {
       if (get2dDistance(stagedElectrolytes[i], elecIntakePose) < FieldConstants.ELECTROLYTE_RADIUS * 5
-          && RobotContainer.operatorController.getLeftTriggerAxis() < -0.5) {
+          && RobotContainer.operatorController.getLeftTriggerAxis() > 0.5) {
         electroIsPresent[i] = false;
         hasElectrolyte = true;
         numElectrolytes++;
