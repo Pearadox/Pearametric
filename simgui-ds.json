@@ -21,20 +21,20 @@
           "incKey": 83
         },
         {
-          "decKey": 81,
-          "decayRate": 0.0,
-          "incKey": 49,
+          "decKey": 49,
+          "decayRate": 0.019999999552965164,
+          "incKey": 81,
           "keyRate": 0.029999999329447746
         },
         {
           "decKey": 51,
-          "decayRate": 0.0,
+          "decayRate": 0.019999999552965164,
           "incKey": 69,
           "keyRate": 0.029999999329447746
         },
         {
-          "decKey": 76,
-          "incKey": 74
+          "decKey": 74,
+          "incKey": 76
         },
         {
           "decKey": 75,
@@ -75,7 +75,9 @@
         },
         {
           "decKey": 79,
-          "incKey": 80
+          "decayRate": 0.019999999552965164,
+          "incKey": 80,
+          "keyRate": 0.029999999329447746
         },
         {
           "decKey": 39,

@@ -40,14 +40,18 @@ public class Sim extends SubsystemBase {
   // private static final double compZeroY = 0;
   // private static final double compZeroZ = 0.0;// for brownout shooter: -0.06;
 
-  private static final int numComponents = 6; //5
+  private static final int numComponents = 4; //5
   private static final int X = 0, Y = 1, Z = 2;
   private static double[][] compZeros = new double[3][numComponents];
   static {
-    compZeros[X][0] = -0.35; // bball intake zeroX
-    compZeros[Z][0] = -0.2; // bball intake zeroZ
-    compZeros[X][4] = 0.34; // eintake intake zeroX
-    compZeros[Z][4] = -0.165; // eintake intake zeroZ
+    // compZeros[X][0] = -0.35; // bball intake zeroX
+    // compZeros[Z][0] = -0.2; // bball intake zeroZ
+    // compZeros[X][4] = 0.34; // eintake intake zeroX
+    // compZeros[Z][4] = -0.165; // eintake intake zeroZ
+    compZeros[X][0] = -0.108; // bball intake zeroX
+    compZeros[Z][0] = -0.154; // bball intake zeroZ
+    compZeros[X][1] = -0.068; // bball intake zeroZ
+    compZeros[Z][1] = -0.632; // bball intake zeroZ
   }
     
   private static ShuffleboardTab componentConfig = Shuffleboard.getTab("component");
@@ -80,24 +84,24 @@ public class Sim extends SubsystemBase {
       .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", 0, "max", 3))
       .withPosition(7, 1).getEntry();
 
-  private static GenericEntry elecIntakeX = componentConfig.add("elecIntake x", -compZeros[X][4])
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
-      .withPosition(3, 0).getEntry();
-  private static GenericEntry elecIntakeY = componentConfig.add("elecIntake y", -compZeros[Y][4])
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
-      .withPosition(3, 1).getEntry();
-  private static GenericEntry elecIntakeZ = componentConfig.add("elecIntake z", -compZeros[Z][4])
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
-      .withPosition(3, 2).getEntry();
-  private static GenericEntry elecIntakeRoll = componentConfig.add("elecIntake roll", 0)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
-      .withPosition(3, 3).getEntry();
-  private static GenericEntry elecIntakePitch = componentConfig.add("elecIntake pitch", 0)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
-      .withPosition(3, 4).getEntry();
-  private static GenericEntry elecIntakeYaw = componentConfig.add("elecIntake yaw", 0)
-      .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
-      .withPosition(3, 5).getEntry();
+  // private static GenericEntry elecIntakeX = componentConfig.add("elecIntake x", -compZeros[X][4])
+  //     .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
+  //     .withPosition(3, 0).getEntry();
+  // private static GenericEntry elecIntakeY = componentConfig.add("elecIntake y", -compZeros[Y][4])
+  //     .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
+  //     .withPosition(3, 1).getEntry();
+  // private static GenericEntry elecIntakeZ = componentConfig.add("elecIntake z", -compZeros[Z][4])
+  //     .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -5, "max", numComponents - 1))
+  //     .withPosition(3, 2).getEntry();
+  // private static GenericEntry elecIntakeRoll = componentConfig.add("elecIntake roll", 0)
+  //     .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
+  //     .withPosition(3, 3).getEntry();
+  // private static GenericEntry elecIntakePitch = componentConfig.add("elecIntake pitch", 0)
+  //     .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
+  //     .withPosition(3, 4).getEntry();
+  // private static GenericEntry elecIntakeYaw = componentConfig.add("elecIntake yaw", 0)
+  //     .withWidget(BuiltInWidgets.kNumberSlider).withProperties(Map.of("min", -180, "max", 180))
+  //     .withPosition(3, 5).getEntry();
 
   private static ShuffleboardTab robotConfig = Shuffleboard.getTab("robot");
 
@@ -127,7 +131,7 @@ public class Sim extends SubsystemBase {
   static { Arrays.fill(ballIsPresent, true); }
   static { Arrays.fill(electroIsPresent, true); }
 
-  private static Transform3d[] components = new Transform3d[6]; //5
+  private static Transform3d[] components = new Transform3d[numComponents]; //5
   static { 
     for (int i = 0; i < components.length; i++) { 
       components[i] = new Transform3d(
@@ -159,8 +163,8 @@ public class Sim extends SubsystemBase {
     visualizeOrigin();
     visualizeRobot();
     visualizeComponents();
-    visualizeBasketballs();
-    visualizeElectrolytes();
+    // visualizeBasketballs();
+    // visualizeElectrolytes();
   }
 
   public void visualizeOrigin() {            
@@ -194,11 +198,12 @@ public class Sim extends SubsystemBase {
     double manipulatorHeight = RobotContainer.driverController.getRightTriggerAxis()
         * ElevatorConstants.MANIPULATOR_MAX_EXTEND 
         + manipZ.getDouble(0);
-    double manipPitch = -Math.PI / 2.0 + 
-        (RobotContainer.driverController.getLeftTriggerAxis() * Math.PI * 2.0 / 3.0);
 
-    double elecIntakePitchd = Units.degreesToRadians(30) +
-        (-RobotContainer.operatorController.getLeftTriggerAxis() * Units.degreesToRadians(90));
+    double manipPitch = Units.degreesToRadians(
+      -85 + RobotContainer.driverController.getLeftTriggerAxis() * 85);
+
+    double elecIntakePitchd = Units.degreesToRadians(
+      135 - RobotContainer.operatorController.getLeftTriggerAxis() * 195);
 
     // if (RobotContainer.driverController.getLeftBumperPressed()){
     //   elecIntakePitch.getDouble(180);
@@ -210,9 +215,9 @@ public class Sim extends SubsystemBase {
     
 
     components[1] = new Transform3d(new Translation3d(  
+        -compZeros[X][1], 
         0, 
-        0, 
-        Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MANIPULATOR_MAX_EXTEND))), 
+        -compZeros[Z][1] + Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MANIPULATOR_MAX_EXTEND))), 
         new Rotation3d());
     components[2] = new Transform3d(new Translation3d(
         0, 
@@ -235,14 +240,14 @@ public class Sim extends SubsystemBase {
             Units.degreesToRadians(compPitch.getDouble(0)),
             Units.degreesToRadians(compYaw.getDouble(0))));
 
-    components[4] = new Transform3d(
-        elecIntakeX.getDouble(-compZeros[X][4]),
-        elecIntakeY.getDouble(-compZeros[Y][4]),
-        elecIntakeZ.getDouble(-compZeros[Z][4]),
-        new Rotation3d(
-            Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
-            Units.degreesToRadians(elecIntakePitch.getDouble(0)),
-            Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
+    // components[4] = new Transform3d(
+    //     elecIntakeX.getDouble(-compZeros[X][4]),
+    //     elecIntakeY.getDouble(-compZeros[Y][4]),
+    //     elecIntakeZ.getDouble(-compZeros[Z][4]),
+    //     new Rotation3d(
+    //         Units.degreesToRadians(elecIntakeRoll.getDouble(0)),
+    //         Units.degreesToRadians(elecIntakePitch.getDouble(0)),
+    //         Units.degreesToRadians(elecIntakeYaw.getDouble(0))));
             
     // components[5] = new Transform3d(
     //     elecIntakeX.getDouble(0),
@@ -255,10 +260,10 @@ public class Sim extends SubsystemBase {
 
     components[currNum] = currComponent;
 
-    components[0] = components[1].plus(components[0]).plus(new Transform3d(
+    components[0] = components[0].plus(new Transform3d(
         new Translation3d(), 
         new Rotation3d(0, manipPitch, 0)));
-    components[4] = components[4].plus(new Transform3d(
+    components[1] = components[1].plus(new Transform3d(
         new Translation3d(), 
         new Rotation3d(0, elecIntakePitchd, 0)));
 
