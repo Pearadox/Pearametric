@@ -36,9 +36,9 @@ public class Sim extends SubsystemBase {
   
   public final Pose3d origin = new Pose3d();
 
-  // private static final double compZeroX = 0.0;// for brownout shooter: -0.05;
+  // private static final double compZeroX = 0.0;
   // private static final double compZeroY = 0;
-  // private static final double compZeroZ = 0.0;// for brownout shooter: -0.06;
+  // private static final double compZeroZ = 0.0;
 
   private static final int numComponents = 4; //5
   private static final int X = 0, Y = 1, Z = 2;
@@ -48,11 +48,21 @@ public class Sim extends SubsystemBase {
     // compZeros[Z][0] = -0.2; // bball intake zeroZ
     // compZeros[X][4] = 0.34; // eintake intake zeroX
     // compZeros[Z][4] = -0.165; // eintake intake zeroZ
-    compZeros[X][0] = -0.108; // bball intake zeroX
-    compZeros[Z][0] = -0.154; // bball intake zeroZ
-    compZeros[X][1] = -0.068; // bball intake zeroZ
-    compZeros[Z][1] = -0.632; // bball intake zeroZ
+
+    compZeros[X][0] = -0.108; // shooter to robot
+    compZeros[Z][0] = -0.154;
+    compZeros[X][1] = -0.068; // amp bar to robot
+    compZeros[Z][1] = -0.632; 
+    compZeros[X][3] = 0.15; // note to robot
+    compZeros[Z][3] = -0.19; 
   }
+
+  public static final Transform3d noteToShooter = new Transform3d(
+    new Translation3d(-compZeros[X][3] + compZeros[X][1], 0, -compZeros[Z][3] + compZeros[Z][1]),
+    new Rotation3d(0, Math.PI / 2, 0));
+
+  public static final Translation3d shooterToRobot = new Translation3d(
+      -compZeros[X][1], 0, -compZeros[Z][1]);
     
   private static ShuffleboardTab componentConfig = Shuffleboard.getTab("component");
   
@@ -220,15 +230,15 @@ public class Sim extends SubsystemBase {
         -compZeros[Z][1] + Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MANIPULATOR_MAX_EXTEND))), 
         new Rotation3d());
     components[2] = new Transform3d(new Translation3d(
+        -compZeros[X][2], 
         0, 
-        0, 
-        Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.TOP_STAGE_MAX_EXTEND))), 
+        -compZeros[Z][2] + Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.TOP_STAGE_MAX_EXTEND))), 
         new Rotation3d());
-    components[3] = new Transform3d(new Translation3d(
-        0, 
-        0, 
-        Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MID_STAGE_MAX_EXTEND))), 
-        new Rotation3d());
+    // components[3] = new Transform3d(new Translation3d(
+    //     -compZeros[X][3], 
+    //     0, 
+    //     -compZeros[Z][3] + Math.max(0, Math.min(manipulatorHeight, ElevatorConstants.MID_STAGE_MAX_EXTEND))), 
+    //     new Rotation3d());
 
     int currNum = (int) (componentNum.getDouble(0) + 0.5);
     Transform3d currComponent = new Transform3d(
@@ -260,12 +270,18 @@ public class Sim extends SubsystemBase {
 
     components[currNum] = currComponent;
 
-    components[0] = components[0].plus(new Transform3d(
-        new Translation3d(), 
-        new Rotation3d(0, manipPitch, 0)));
-    components[1] = components[1].plus(new Transform3d(
-        new Translation3d(), 
-        new Rotation3d(0, elecIntakePitchd, 0)));
+    // components[0] = components[0].plus(new Transform3d(
+    //     new Translation3d(), 
+    //     new Rotation3d(0, manipPitch, 0)));
+    // components[1] = components[1].plus(new Transform3d(
+    //     new Translation3d(), 
+    //     new Rotation3d(0, elecIntakePitchd, 0)));
+
+    // components[3] = components[0].plus(noteToShooter).plus(shooterToRobot);
+    // components[3] = noteToShooter.plus(components[0]).plus(shooterToRobot);
+    components[3] = noteToShooter
+      .plus(new Transform3d(new Translation3d(), components[0].getRotation()))
+      .plus(new Transform3d(shooterToRobot, new Rotation3d()));
 
     Logger.recordOutput("Sim/Components Tranform3d[]", components );
     Logger.recordOutput("Sim/Robot Pose");
