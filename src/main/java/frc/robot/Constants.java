@@ -8,7 +8,11 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 
@@ -114,6 +118,26 @@ public final class Constants {
     public static final double MID_HOOP_POS = 5;
     public static final double HIGH_HOOP_POS = 7;
     public static final double STOWED_POS = 1;
+
+    // how far can each component of the elevator extend vertically
+    public static final double MANIPULATOR_MAX_EXTEND = Units.inchesToMeters(86);
+    public static final double TOP_STAGE_MAX_EXTEND = Units.inchesToMeters(58);
+    public static final double MID_STAGE_MAX_EXTEND = Units.inchesToMeters(30);
+
+    public static final Transform3d HELD_BASKETBALL_POS = new Transform3d(0.25, 0, 0.05, new Rotation3d());
+  }
+  
+  public static final class IntakeConstants{
+    public static final int ELEC_INTAKE_MOTOR_ID = 21; //change it later
+
+    public static final Transform3d HELD_ELECTROLYTE_POS = new Transform3d(
+      -0.26, FieldConstants.ELECTROLYTE_RADIUS * -2.5, 0.72, new Rotation3d());
+    //TODO: find stowed and deployed
+  }
+
+  public static final class HopperConstants {
+    public static final int HOP_TRANSPORT_MOTOR_ID = 22;
+    public static final int HOP_OUTTAKE_MOTOR_ID = 23;  
   }
   
   public static final class IntakeConstants{
@@ -121,22 +145,84 @@ public final class Constants {
   }
 
   public class FieldConstants {
-    public static final double FIELD_LENGTH = Units.inchesToMeters(651.223);
-    public static final double FIELD_WIDTH = Units.inchesToMeters(323.277);
+    public static final double FIELD_LENGTH = Units.feetToMeters(54); // Units.inchesToMeters(651.223);
+    public static final double FIELD_WIDTH = Units.feetToMeters(27); // Units.inchesToMeters(323.277);
     
-    public static final double FIRST_BLUE_BASKETBALL_X = 0.607;
-    public static final double FIRST_RED_BASKETBALL_X = 15.850;
+    public static final double FIRST_BLUE_BASKETBALL_X = Units.inchesToMeters(24);
     public static final double BASKETBALL_SEPARATION = Units.inchesToMeters(30);
+    public static final double BASKETBALL_RADIUS = Units.inchesToMeters(5);
+    public static final double BASKETBALL_CAD_OFFSET = Units.inchesToMeters(1.7);
+
+    public static final double ELECTROLYTE_SEPARATION = Units.inchesToMeters(6);
+    public static final double ELECTROLYTE_RADIUS = Units.inchesToMeters(2.5);
+
     // game piece locations
-    public static final Translation2d[] BASKETBALLS = new Translation2d[20];
+    public static final Pose3d[] BASKETBALLS = new Pose3d[20];
     static {
       for (int i = 0; i < BASKETBALLS.length / 2; i++) {
-        BASKETBALLS[i] = new Translation2d(
-          FIRST_BLUE_BASKETBALL_X + BASKETBALL_SEPARATION * i, FIELD_WIDTH / 2);
+        BASKETBALLS[i] = new Pose3d(new Translation3d(
+            FIRST_BLUE_BASKETBALL_X + BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
+            FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
       }
-      for (int i = BASKETBALLS.length / 2; i < BASKETBALLS.length; i++) {
-        BASKETBALLS[i] = new Translation2d(
-          FIRST_RED_BASKETBALL_X - BASKETBALL_SEPARATION * i, FIELD_WIDTH / 2);
+      for (int i = 0; i < BASKETBALLS.length / 2; i++) {
+        BASKETBALLS[i + BASKETBALLS.length / 2] = new Pose3d(new Translation3d(
+            FIELD_LENGTH - FIRST_BLUE_BASKETBALL_X - BASKETBALL_SEPARATION * i + BASKETBALL_CAD_OFFSET, 
+            FIELD_WIDTH / 2, BASKETBALL_RADIUS), new Rotation3d());
+        // BASKETBALLS[i + BASKETBALLS.length / 2] = flipAlliance(BASKETBALLS[i]);
       }
     }
+
+    public static final Pose3d[] ELECTROLYTES = new Pose3d[8];
+    static{
+      for (int i = 0; i < ELECTROLYTES.length/2; i++){
+        ELECTROLYTES[i] = new Pose3d(new Translation3d(
+          ELECTROLYTE_SEPARATION * (i + 1),
+          FIELD_WIDTH / 3, ELECTROLYTE_RADIUS), new Rotation3d());
+      }
+      for (int i = 0; i <ELECTROLYTES.length/2; i++){
+        ELECTROLYTES[i + ELECTROLYTES.length / 2] = new Pose3d(new Translation3d(
+          FIELD_LENGTH - ELECTROLYTE_SEPARATION * (i + 1),
+          FIELD_WIDTH / 3, ELECTROLYTE_RADIUS), new Rotation3d());
+      }
+    }
+
+    public static final double HOOP_RADIUS = Units.inchesToMeters(12);
+
+    public static final Pose3d HIGH_HOOP = new Pose3d(
+        new Translation3d(1.688, FIELD_WIDTH - 6.991, Units.inchesToMeters(90)), new Rotation3d());
+    public static final Pose3d MID_HOOP = new Pose3d(
+        new Translation3d(2.493, FIELD_WIDTH - 7.452, Units.inchesToMeters(54)), new Rotation3d());
+    public static final Pose3d LOW_HOOP = new Pose3d(
+        new Translation3d(0.883, FIELD_WIDTH - 6.531, Units.inchesToMeters(36)), new Rotation3d());
+
+    public static final Pose3d[] HOOPS = { 
+      HIGH_HOOP, 
+      MID_HOOP, 
+      LOW_HOOP, 
+      flipAlliance(HIGH_HOOP),
+      flipAlliance(MID_HOOP),
+      flipAlliance(LOW_HOOP),
+    };
+
+    public static final double DUNK_TANK_RADIUS = Units.inchesToMeters(24);
+
+    public static final Pose3d BLUE_TANK = new Pose3d(new Translation3d(
+        FIELD_LENGTH - Units.inchesToMeters(120),
+        Units.inchesToMeters(60), 
+        Units.inchesToMeters(24)),
+        new Rotation3d());
+
+    public static final Pose3d BONUS_MODE_TANK = new Pose3d(new Translation3d(
+        FIELD_LENGTH / 2, FIELD_WIDTH / 2, Units.inchesToMeters(24)), new Rotation3d());
+
+    public static final Pose3d[] DUNK_TANKS = { BLUE_TANK, BONUS_MODE_TANK, flipAlliance(BLUE_TANK) };
+    
+    public static Pose3d flipAlliance(Pose3d blue) {
+      return new Pose3d(new Translation3d(
+          FieldConstants.FIELD_LENGTH - blue.getX(),
+          FieldConstants.FIELD_WIDTH - blue.getY(),
+          blue.getZ()),
+          blue.getRotation().plus(new Rotation3d(0, 0, Math.PI)));
+    }
+  }
 }
