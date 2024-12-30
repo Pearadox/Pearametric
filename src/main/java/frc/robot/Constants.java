@@ -139,6 +139,10 @@ public final class Constants {
     public static final int HOP_TRANSPORT_MOTOR_ID = 22;
     public static final int HOP_OUTTAKE_MOTOR_ID = 23;  
   }
+  
+  public static final class IntakeConstants{
+    public static final int INTAKE_ROLLER_ID = 21; //chang it later
+  }
 
   public class FieldConstants {
     public static final double FIELD_LENGTH = Units.feetToMeters(54); // Units.inchesToMeters(651.223);
